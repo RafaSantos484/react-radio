@@ -2,14 +2,21 @@ import React from "react";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import Slide from "@mui/material/Slide";
+import { useNavigate } from "react-router-dom";
 
-import "../assets/styles/register.css";
+import styles from "../assets/styles/register.module.css";
 import logo from "../assets/img/logo.png";
 import registerImg from "../assets/img/register/registerImg.svg";
 
 export default function Register() {
   const [inRegisterImg, setInRegisterImg] = React.useState(false);
   const [inForm, setInForm] = React.useState(false);
+  const navigate = useNavigate();
+
+  const handleSubmit = () => {
+    //TODO: validar entrada
+    navigate("/main");
+  };
 
   React.useEffect(() => {
     document.title = "Cadastrar-se";
@@ -18,8 +25,8 @@ export default function Register() {
   }, []);
 
   return (
-    <div className="container">
-      <div className="registerDiv">
+    <div className={styles.container}>
+      <div className={styles.registerDiv}>
         <Slide direction="right" in={inRegisterImg} timeout={700}>
           <img
             src={registerImg}
@@ -28,7 +35,7 @@ export default function Register() {
           />
         </Slide>
         <Slide direction="right" in={inForm} timeout={800}>
-          <form onSubmit={() => alert("Enviou form")} className="form">
+          <form onSubmit={handleSubmit} className={styles.form}>
             <a href="/">
               <img
                 src={logo}
@@ -41,24 +48,28 @@ export default function Register() {
               label="E-mail"
               variant="outlined"
               type="email"
+              required
               style={{ margin: "1rem", width: "75%" }}
             />
             <TextField
               label="Nome do usuário"
               variant="outlined"
               type="text"
+              required
               style={{ margin: "1rem", width: "75%" }}
             />
             <TextField
               label="Senha"
               variant="outlined"
               type="password"
+              required
               style={{ margin: "1rem", width: "75%" }}
             />
             <TextField
               label="Confirmar Senha"
               variant="outlined"
               type="password"
+              required
               style={{ margin: "1rem", width: "75%" }}
             />
             <Button

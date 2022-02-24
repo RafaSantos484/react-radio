@@ -5,12 +5,16 @@
   width: 100%;
   height: 100%;
   align-items: center;
+  justify-content: center;
   background-image: url("../img/background.svg");
   background-size: cover;
 }
 
-a {
-  color: #ef7d1e;
+.registerDiv {
+  display: flex;
+  flex-direction: row;
+  width: 80%; 
+  /*height: 80%;*/
 }
 
 .form {
@@ -23,10 +27,3 @@ a {
   margin: 1rem;
   border-radius: 1rem;
 }
-
-/*.supBar {
-  display: flex;
-  justify-content: center;
-  width: 100%;
-  background-color: rgb(255, 241, 212);
-}*/
