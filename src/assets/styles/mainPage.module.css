@@ -1,9 +1,37 @@
 .container {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   position: absolute;
   width: 100%;
   height: 100%;
+}
+
+.leftBar {
+  display: flex;
+  flex-direction: column;
+  background-color: #ffc697;
+  width: 18%;
+  height: 100%;
   align-items: center;
-  justify-content: center;
+}
+
+.tabs {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  height: 50%;
+}
+
+.bottomButton {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  width: 100%;
+  height: 50%;
+}
+
+.temp {
+  background-color: #ffac67;
+  color: #363636;
 }
