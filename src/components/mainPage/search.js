@@ -1,6 +1,6 @@
 import React from "react";
 import { styled } from "@mui/material/styles";
-import { InputAdornment, TextField } from "@mui/material";
+import { IconButton, TextField } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 
 import styles from "../../assets/styles/search.module.css";
@@ -10,32 +10,54 @@ const StyledSearchField = styled(TextField)({
     color: "#363636",
   },
 });
-const handleSearch = () => {
-  alert("Pesquisou");
-};
 
 export default function Search() {
+  const [searchVal, setSearchVal] = React.useState("");
+  const [radioURL, setRadioURL] = React.useState("");
+
+  const handleSearch = async (keyCode = "Enter") => {
+    if (keyCode !== "Enter") return;
+
+    const response = await fetch(
+      `http://de1.api.radio-browser.info/json/stations/byname/${searchVal}`
+    );
+    const result = await response.json();
+    setRadioURL("");
+    console.log(result.filter((value) => value.country === "Brazil"));
+    //const filteredResult = result.filter((value) => value.country === "Brazil");
+    const filteredResult = result;//TEMP
+    console.log(filteredResult[0].url);
+    setRadioURL(filteredResult[0].url);
+    //console.log(radioURL);
+  };
+
   return (
     <div className={styles.container}>
-      <form className={styles.form} onSubmit={handleSearch}>
+      <div className={styles.searchArea}>
         <StyledSearchField
+          value={searchVal}
           variant="filled"
-          sx={{ bgcolor: "#ffac67", width: "80%" }}
+          sx={{ bgcolor: "#ffac67", width: "80%", margin: "1.2rem" }}
           label="Pesquisar Rádio"
           InputProps={{
             disableUnderline: true,
             endAdornment: (
-              <InputAdornment position="end">
+              <IconButton onClick={() => handleSearch()}>
                 <SearchIcon />
-              </InputAdornment>
+              </IconButton>
             ),
           }}
+          onKeyPress={(event) => handleSearch(event.code)}
+          onChange={(event) => setSearchVal(event.target.value)}
         />
-      </form>
-      <div
-        className={styles.results}
-      >
+      </div>
+      <div className={styles.results}>
         resultados da pesquisa
+        {radioURL !== "" && (
+          <audio controls autoPlay>
+            <source src={radioURL} />
+          </audio>
+        )}
       </div>
     </div>
   );
