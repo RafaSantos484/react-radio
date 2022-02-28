@@ -9,6 +9,7 @@ import genericRadioImg from "../../assets/img/search/genericRadio.png";
 import { Pause } from "@mui/icons-material";
 import { useEffect, useState } from "react";
 
+var playPromise = true;
 const Player = connect(mapStateToProps)((props) => {
   //console.log(props);
   let radio = props.selectedRadioReducer.radio;
@@ -16,31 +17,57 @@ const Player = connect(mapStateToProps)((props) => {
 
   let isPlaying = props.selectedRadioReducer.isPlaying;
   const [audio] = useState(new Audio());
-  const [playPromise, setPlayPromise] = useState(true);
+  //const [playPromise, setPlayPromise] = useState(true);
   //console.log(isPlaying);
 
+  audio.onpause = () => {
+    if (!playPromise) return;
+
+    props.dispatch({
+      type: "selectedRadio/set",
+      payload: { radio: radio, isPlaying: false },
+    });
+    //audio.src = "";
+    isPlaying = false;
+    playAudio();
+  };
+  audio.onplaying = () => {
+    if (!playPromise) return;
+
+    props.dispatch({
+      type: "selectedRadio/set",
+      payload: { radio: radio, isPlaying: true },
+    });
+    //audio.src = "";
+    isPlaying = true;
+    playAudio();
+  }
+
   useEffect(() => {
-    if (audio.currentSrc !== radio.url) playAudio();
+    //if(audio.src !== radio.url) playAudio();
+    playAudio();
   });
 
   function playAudio() {
     if (!playPromise) return;
 
-    audio.pause();
-    audio.src = radio.url;
-
     if (isPlaying) {
-      setPlayPromise(false);
+      //setPlayPromise(false);
+      playPromise = false;
+      audio.src = radio.url;
       audio
         .play()
         .then(() => {
-          setPlayPromise(true);
+          //setPlayPromise(true);
+          playPromise = true;
         })
         .catch((err) => {
           console.log(err);
           alert("Falha ao tocar rádio. Recarregando página");
           window.location.reload();
         });
+    } else {
+      audio.pause();
     }
   }
 
