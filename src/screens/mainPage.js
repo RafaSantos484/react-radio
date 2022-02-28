@@ -11,6 +11,7 @@ import logo from "../assets/img/logo.png";
 import Search from "../components/mainPage/search";
 import Favorites from "../components/mainPage/favorites";
 import RadioHistory from "../components/mainPage/radioHistory";
+import Player from "../components/mainPage/player";
 
 const StyledExitButton = styled(Button)({
   "&.MuiButton-outlined": {
@@ -37,7 +38,7 @@ export default function MainPage() {
   };
 
   useState(() => {
-    document.title = "Página Principal";
+    document.title = "React Radio";
   });
 
   return (
@@ -67,6 +68,7 @@ export default function MainPage() {
             />
             <Tab icon={<History />} iconPosition="end" label="Histórico" />
           </Tabs>
+          <Player />
         </div>
         <div className={styles.bottomButton}>
           <StyledExitButton

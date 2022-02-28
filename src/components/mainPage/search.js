@@ -3,6 +3,9 @@ import { styled } from "@mui/material/styles";
 import { IconButton, TextField } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 
+import RadioCard from "./radioCard";
+import { getSearchResult } from "../../api";
+
 import styles from "../../assets/styles/search.module.css";
 
 const StyledSearchField = styled(TextField)({
@@ -13,22 +16,37 @@ const StyledSearchField = styled(TextField)({
 
 export default function Search() {
   const [searchVal, setSearchVal] = React.useState("");
-  const [radioURL, setRadioURL] = React.useState("");
+  const [searchResult, setSearchResult] = React.useState([]);
 
   const handleSearch = async (keyCode = "Enter") => {
+    //let teste = new Audio(radioURL);
+    //teste.play();
     if (keyCode !== "Enter") return;
 
-    const response = await fetch(
-      `http://de1.api.radio-browser.info/json/stations/byname/${searchVal}`
-    );
-    const result = await response.json();
-    setRadioURL("");
-    console.log(result.filter((value) => value.country === "Brazil"));
-    //const filteredResult = result.filter((value) => value.country === "Brazil");
-    const filteredResult = result;//TEMP
-    console.log(filteredResult[0].url);
-    setRadioURL(filteredResult[0].url);
+    const result = await getSearchResult(searchVal);
+    //setRadioURL("");
+    //console.log(result.filter((value) => value.country === "Brazil"));
+    const filteredResult = result; //TEMP
+    //console.log(filteredResult[0].url);
+    //setRadioURL(filteredResult[0].url);
     //console.log(radioURL);
+    setSearchResult(filteredResult);
+  };
+  const ResultComponent = () => {
+    if (searchResult.length === 0) {
+      return (
+        <div>
+          <h1>Nenhuma rádio encontrada</h1>
+        </div>
+      );
+    }
+    return (
+      <div className={styles.result}>
+        {searchResult.map((radio) => {
+          return <RadioCard radio={radio} key={radio.stationuuid} />;
+        })}
+      </div>
+    );
   };
 
   return (
@@ -51,14 +69,7 @@ export default function Search() {
           onChange={(event) => setSearchVal(event.target.value)}
         />
       </div>
-      <div className={styles.results}>
-        resultados da pesquisa
-        {radioURL !== "" && (
-          <audio controls autoPlay>
-            <source src={radioURL} />
-          </audio>
-        )}
-      </div>
+      <ResultComponent />
     </div>
   );
 }

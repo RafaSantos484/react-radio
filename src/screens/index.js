@@ -19,7 +19,7 @@ export default function Index() {
   };
 
   React.useEffect(() => {
-    document.title = "React Radio";
+    document.title = "Login";
     setInTitle(true);
     setTimeout(() => setInSubTitle(true), 150);
     setTimeout(() => setInForm(true), 300);
