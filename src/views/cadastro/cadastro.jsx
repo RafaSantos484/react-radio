@@ -36,6 +36,8 @@ export function Register() {
 
   function handleSubmit(event) {
     event.preventDefault();
+    setEmail(email.trim());
+    setName(name.trim());
     if (isAwatingAsyncEvent) return;
 
     if (password !== confirmPassword) {
@@ -54,7 +56,7 @@ export function Register() {
       .then(() => {
         setAlertInfo(null);
         setDialogMessage(
-          "Conta criada. Um email de confirmação foi enviado. Confirme seu email, realize o login e começe a ouvir!"
+          "Conta criada. Um email de verificação foi enviado. Verifique seu email, realize o login e começe a ouvir!"
         );
       })
       .catch((err) => {
@@ -75,7 +77,6 @@ export function Register() {
 
     if (isGettingUser) {
       return getLoggedUser((user) => {
-        console.log(user);
         if (user && user.emailVerified) navigate("/dashboard");
 
         setIsGettingUser(false);

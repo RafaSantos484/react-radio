@@ -4,6 +4,7 @@ import {
   getAuth,
   onAuthStateChanged,
   sendEmailVerification,
+  signInWithEmailAndPassword,
   updateProfile,
 } from "firebase/auth";
 
@@ -25,35 +26,90 @@ export function getLoggedUser(callback) {
   onAuthStateChanged(auth, callback);
 }
 
+export async function sendVerificationEmail(user) {
+  try {
+    return await sendEmailVerification(user);
+  } catch (err) {
+    console.log(err.code);
+    let message;
+
+    if (err.code) {
+      switch (err.code) {
+        case "auth/too-many-requests":
+          message =
+            "ERRO: Muitas requisições feitas. Aguarde um instante e tente novamente";
+          break;
+        default:
+          message = "ERRO: Falha ao enviar Email de verificação";
+      }
+    } else {
+      message = "ERRO: Falha ao realizar login. Tente novamente mais tarde";
+    }
+
+    throw new Error(message);
+  }
+}
+
 export async function createUser(email, password, name) {
   try {
     const auth = getAuth(firebaseApp);
 
     const res = await createUserWithEmailAndPassword(auth, email, password);
     await updateProfile(res.user, { displayName: name });
-
-    try {
-      return await sendEmailVerification(res.user);
-    } catch (err) {
-      throw new Error(
-        "ERRO: Conta criada mas houve uma falha para enviar o email de verificação. Tente realizar login para tentar enviar o email novamente"
-      );
-    }
+    return await sendVerificationEmail(res.user);
   } catch (err) {
+    console.log(err.code);
     let message;
 
     if (err.code) {
       switch (err.code) {
+        case "auth/too-many-requests":
+          message =
+            "ERRO: Muitas requisições feitas. Aguarde um instante e tente novamente";
+          break;
+        case "auth/invalid-email":
+          message = "ERRO: Email inválido";
+          break;
         case "auth/email-already-in-use":
-          message = "Email já cadastrado";
+          message = "ERRO: Email já cadastrado";
           break;
         default:
-          message = "Falha ao criar usuário. Tente novamente mais tarde";
+          message = "ERRO: Falha ao criar usuário. Tente novamente mais tarde";
       }
     } else if (err.message.startsWith("ERRO: ")) {
-      message = err.message.replace("ERRO: ", "");
+      message = err.message;
     } else {
-      message = "Falha ao criar usuário. Tente novamente mais tarde";
+      message = "ERRO: Falha ao criar usuário. Tente novamente mais tarde";
+    }
+
+    throw new Error(message);
+  }
+}
+
+export async function login(email, password) {
+  try {
+    const auth = getAuth(firebaseApp);
+
+    return await signInWithEmailAndPassword(auth, email, password);
+  } catch (err) {
+    console.log(err.code);
+
+    let message;
+    if (err.code) {
+      switch (err.code) {
+        case "auth/too-many-requests":
+          message =
+            "ERRO: Muitas requisições feitas. Aguarde um instante e tente novamente";
+          break;
+        case "auth/user-not-found":
+        case "auth/wrong-password":
+          message = "ERRO: Usuário não encontrado";
+          break;
+        default:
+          message = "ERRO: Falha ao realizar login. Tente novamente mais tarde";
+      }
+    } else {
+      message = "ERRO: Falha ao realizar login. Tente novamente mais tarde";
     }
 
     throw new Error(message);

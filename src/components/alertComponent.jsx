@@ -36,7 +36,7 @@ export function AlertComponent(props) {
             </div>
           }
         >
-          {alertInfo.message}
+          {alertInfo.message.replace("ERRO: ", "")}
         </Alert>
       </div>
     </Slide>

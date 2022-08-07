@@ -6,7 +6,12 @@ import styles from "./login.module.css";
 
 import logo from "../../assets/logo.png";
 import { StyledTextField } from "../../components/styled-components";
-import { getLoggedUser } from "../../api/firebase";
+import {
+  getLoggedUser,
+  login,
+  sendVerificationEmail,
+} from "../../api/firebase";
+import { setAlertInfo } from "../../App";
 
 export function Login() {
   const navigate = useNavigate();
@@ -14,16 +19,43 @@ export function Login() {
   const [subTitleIn, setSubTitleIn] = useState(false);
   const [formIn, setFormIn] = useState(false);
   const [isGettingUser, setIsGettingUser] = useState(true);
+  const [isAwatingAsyncEvent, setIsAwatingAsyncEvent] = useState(false);
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   function handleSubmit(event) {
     event.preventDefault();
+    setEmail(email.trim());
+    if (isAwatingAsyncEvent) return;
+
+    setIsAwatingAsyncEvent(true);
+    login(email, password)
+      .then(async (res) => {
+        if (!res.user.emailVerified) {
+          await sendVerificationEmail(res.user);
+          return setAlertInfo({
+            severity: "warning",
+            message:
+              "Email não verificado. um novo email de verificação foi enviado",
+          });
+        }
+
+        alert("Logou...");
+      })
+      .catch((err) =>
+        setAlertInfo({
+          severity: "error",
+          message: err.message,
+        })
+      )
+      .finally(() => setIsAwatingAsyncEvent(false));
   }
 
   useEffect(() => {
     document.title = "Login";
     if (isGettingUser) {
       return getLoggedUser((user) => {
-        console.log(user);
         if (user && user.emailVerified) navigate("/dashboard");
 
         setIsGettingUser(false);
@@ -61,7 +93,9 @@ export function Login() {
           <Typography
             variant="h6"
             sx={{ maxWidth: "90vw", marginTop: "1em" }}
-            onClick={() => navigate("/cadastro")}
+            onClick={() => {
+              if (!isAwatingAsyncEvent) navigate("/cadastro");
+            }}
             className={styles.gotoRegisterLink}
           >
             {" "}
@@ -74,22 +108,29 @@ export function Login() {
         <form onSubmit={(event) => handleSubmit(event)} className={styles.form}>
           <img src={logo} alt="logo" />
           <StyledTextField
-            label="E-mail/Usuário"
+            label="E-mail"
             variant="outlined"
-            type="text"
+            type="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value.trim())}
             required
             sx={{ margin: "1em", width: "90%", maxWidth: "500px" }}
+            inputProps={{ maxLength: 50 }}
           />
           <StyledTextField
             label="Senha"
             variant="outlined"
             type="password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value.trim())}
             required
             sx={{ margin: "1em", width: "90%", maxWidth: "500px" }}
+            inputProps={{ maxLength: 15, minLength: 8 }}
           />
           <Button
             variant="contained"
             type="submit"
+            disabled={isAwatingAsyncEvent}
             sx={{
               backgroundColor: "#ef7d1e",
               "&:hover": {
@@ -99,7 +140,11 @@ export function Login() {
           >
             Login
           </Button>
-          <Button variant="text" sx={{ color: "#ad323f", margin: "0.5rem" }}>
+          <Button
+            variant="text"
+            sx={{ color: "#ad323f", margin: "0.5rem" }}
+            disabled={isAwatingAsyncEvent}
+          >
             Esqueci a senha
           </Button>
         </form>
