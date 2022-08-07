@@ -1,4 +1,4 @@
-import { Slide, Typography, Button } from "@mui/material";
+import { Slide, Typography, Button, CircularProgress } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -6,12 +6,14 @@ import styles from "./login.module.css";
 
 import logo from "../../assets/logo.png";
 import { StyledTextField } from "../../components/styled-components";
+import { getLoggedUser } from "../../api/firebase";
 
 export function Login() {
   const navigate = useNavigate();
   const [titleIn, setTitleIn] = useState(false);
   const [subTitleIn, setSubTitleIn] = useState(false);
   const [formIn, setFormIn] = useState(false);
+  const [isGettingUser, setIsGettingUser] = useState(true);
 
   function handleSubmit(event) {
     event.preventDefault();
@@ -19,20 +21,35 @@ export function Login() {
 
   useEffect(() => {
     document.title = "Login";
+    if (isGettingUser) {
+      return getLoggedUser((user) => {
+        console.log(user);
+        if (user && user.emailVerified) navigate("/dashboard");
 
-    setTitleIn(true);
-    setTimeout(() => setSubTitleIn(true), 300);
-    setTimeout(() => setFormIn(true), 500);
-  }, []);
+        setIsGettingUser(false);
+
+        setTitleIn(true);
+        setTimeout(() => setSubTitleIn(true), 300);
+        setTimeout(() => setFormIn(true), 500);
+      });
+    }
+  }, [navigate, isGettingUser]);
+
+  if (isGettingUser)
+    return (
+      <div className={styles.container}>
+        <CircularProgress size="20vw" sx={{ color: "#ef7d1e" }} />
+      </div>
+    );
 
   return (
     <div className={styles.container}>
-      <Slide direction="down" in={titleIn} timeout={1000}>
+      <Slide direction="down" in={titleIn} timeout={500}>
         <Typography variant="h4" sx={{ color: "wheat", maxWidth: "90vw" }}>
           Milhares de rádios ao alcançe de um click
         </Typography>
       </Slide>
-      <Slide direction="down" in={subTitleIn} timeout={700}>
+      <Slide direction="down" in={subTitleIn} timeout={800}>
         <div style={{ display: "flex" }}>
           <Typography
             variant="h6"

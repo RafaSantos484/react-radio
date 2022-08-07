@@ -1,5 +1,15 @@
 import { useState, useEffect } from "react";
-import { Typography, Button, Slide } from "@mui/material";
+import {
+  Typography,
+  Button,
+  Slide,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  CircularProgress,
+} from "@mui/material";
 
 import styles from "./cadastro.module.css";
 
@@ -7,7 +17,8 @@ import registerImg from "../../assets/register/register-img.svg";
 import logo from "../../assets/logo.png";
 import { StyledTextField } from "../../components/styled-components";
 import { useNavigate } from "react-router-dom";
-import { createUser } from "../../api/firebase";
+import { createUser, getLoggedUser } from "../../api/firebase";
+import { setAlertInfo } from "../../App";
 
 export function Register() {
   const navigate = useNavigate();
@@ -15,6 +26,8 @@ export function Register() {
   const [isAwatingAsyncEvent, setIsAwatingAsyncEvent] = useState(false);
   const [registerImgIn, setRegisterImgIn] = useState(false);
   const [formIn, setFormIn] = useState(false);
+  const [dialogMessage, setDialogMessage] = useState(null);
+  const [isGettingUser, setIsGettingUser] = useState(true);
 
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
@@ -26,14 +39,33 @@ export function Register() {
     if (isAwatingAsyncEvent) return;
 
     if (password !== confirmPassword) {
-      return alert("As senhas não coincidem");
+      return setAlertInfo({
+        severity: "error",
+        message: "As senhas não coincidem",
+      });
     }
 
     setIsAwatingAsyncEvent(true);
+    setAlertInfo({
+      severity: "info",
+      message: "Criando conta",
+    });
     createUser(email, password, name)
-      .then(() => alert("Conta criada"))
+      .then(() => {
+        setAlertInfo(null);
+        setDialogMessage(
+          "Conta criada. Um email de confirmação foi enviado. Confirme seu email, realize o login e começe a ouvir!"
+        );
+      })
       .catch((err) => {
-        console.log(err.message);
+        if (err.message.startsWith("Conta criada")) {
+          return setDialogMessage(err.message);
+        }
+
+        setAlertInfo({
+          severity: "error",
+          message: err.message,
+        });
       })
       .finally(() => setIsAwatingAsyncEvent(false));
   }
@@ -41,12 +73,40 @@ export function Register() {
   useEffect(() => {
     document.title = "Cadastrar-se";
 
-    setFormIn(true);
-    setTimeout(() => setRegisterImgIn(true), 400);
-  }, []);
+    if (isGettingUser) {
+      return getLoggedUser((user) => {
+        console.log(user);
+        if (user && user.emailVerified) navigate("/dashboard");
+
+        setIsGettingUser(false);
+
+        setFormIn(true);
+        setTimeout(() => setRegisterImgIn(true), 400);
+      });
+    }
+  });
+
+  if (isGettingUser)
+    return (
+      <div className={styles.container}>
+        <CircularProgress size="20vw" sx={{ color: "#ef7d1e" }} />
+      </div>
+    );
 
   return (
     <div className={styles.container}>
+      <Dialog open={!!dialogMessage} onClose={() => navigate("/")}>
+        <DialogTitle>Conta criada</DialogTitle>
+        <DialogContent>
+          <DialogContentText>{dialogMessage}</DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button sx={{ color: "#ef7d1e" }} onClick={() => navigate("/")}>
+            Entendi
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <div className={styles.imageDiv}>
         <Slide direction="right" in={registerImgIn} timeout={700}>
           <img src={registerImg} alt="Imagem cadastro" />
