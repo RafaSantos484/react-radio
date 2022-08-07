@@ -7,8 +7,9 @@ import styles from "./login.module.css";
 import logo from "../../assets/logo.png";
 import { StyledTextField } from "../../components/styled-components";
 import {
-  getLoggedUser,
+  onRetrieveLoggedUser,
   login,
+  loginAnonymously,
   sendVerificationEmail,
 } from "../../api/firebase";
 import { setAlertInfo } from "../../App";
@@ -24,12 +25,24 @@ export function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  function handleSubmit(event) {
+  function handleSubmit(event, isLoggingInAnonymously = false) {
     event.preventDefault();
-    setEmail(email.trim());
     if (isAwatingAsyncEvent) return;
 
     setIsAwatingAsyncEvent(true);
+
+    if (isLoggingInAnonymously) {
+      return loginAnonymously()
+        .catch((err) =>
+          setAlertInfo({
+            severity: "error",
+            message: err.message,
+          })
+        )
+        .finally(() => setIsAwatingAsyncEvent(false));
+    }
+
+    setEmail(email.trim());
     login(email, password)
       .then(async (res) => {
         if (!res.user.emailVerified) {
@@ -40,8 +53,6 @@ export function Login() {
               "Email não verificado. um novo email de verificação foi enviado",
           });
         }
-
-        alert("Logou...");
       })
       .catch((err) =>
         setAlertInfo({
@@ -55,8 +66,9 @@ export function Login() {
   useEffect(() => {
     document.title = "Login";
     if (isGettingUser) {
-      return getLoggedUser((user) => {
-        if (user && user.emailVerified) navigate("/dashboard");
+      return onRetrieveLoggedUser((user) => {
+        if (user && (user.emailVerified || user.isAnonymous))
+          navigate("/dashboard");
 
         setIsGettingUser(false);
 
@@ -142,10 +154,18 @@ export function Login() {
           </Button>
           <Button
             variant="text"
-            sx={{ color: "#ad323f", margin: "0.5rem" }}
+            sx={{ color: "#ad323f", marginTop: "0.5rem" }}
             disabled={isAwatingAsyncEvent}
           >
             Esqueci a senha
+          </Button>
+          <Button
+            variant="text"
+            sx={{ color: "#ef7d1e" }}
+            disabled={isAwatingAsyncEvent}
+            onClick={(event) => handleSubmit(event, true)}
+          >
+            Entrar sem fazer login
           </Button>
         </form>
       </Slide>

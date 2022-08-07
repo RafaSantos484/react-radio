@@ -17,7 +17,7 @@ import registerImg from "../../assets/register/register-img.svg";
 import logo from "../../assets/logo.png";
 import { StyledTextField } from "../../components/styled-components";
 import { useNavigate } from "react-router-dom";
-import { createUser, getLoggedUser } from "../../api/firebase";
+import { createUser, onRetrieveLoggedUser } from "../../api/firebase";
 import { setAlertInfo } from "../../App";
 
 export function Register() {
@@ -76,8 +76,9 @@ export function Register() {
     document.title = "Cadastrar-se";
 
     if (isGettingUser) {
-      return getLoggedUser((user) => {
-        if (user && user.emailVerified) navigate("/dashboard");
+      return onRetrieveLoggedUser((user) => {
+        if (user && (user.emailVerified || user.isAnonymous))
+          navigate("/dashboard");
 
         setIsGettingUser(false);
 
