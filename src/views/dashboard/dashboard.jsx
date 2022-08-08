@@ -19,7 +19,10 @@ export function Dashboard() {
   const [user, setUser] = useState(null);
   const [isAwatingAsyncEvent, setIsAwatingAsyncEvent] = useState(false);
 
-  //const audio = useState(new Audio())[0];
+  const [audioInfo, setAudioInfo] = useState({
+    audio: new Audio(),
+    shouldRefreshAudio: false,
+  });
   const [selectedRadio, setSelectedRadio] = useState(null);
 
   const [tabsIndex, setTabsIndex] = useState(0);
@@ -101,8 +104,11 @@ export function Dashboard() {
           })}
         </Tabs>
         <Player
+          isAwatingAsyncEvent={isAwatingAsyncEvent}
+          setIsAwatingAsyncEvent={setIsAwatingAsyncEvent}
           selectedRadio={selectedRadio}
-          setSelectedRadio={setSelectedRadio}
+          audioInfo={audioInfo}
+          setAudioInfo={setAudioInfo}
         />
         <Button
           variant="outlined"
@@ -120,11 +126,11 @@ export function Dashboard() {
           }}
           disabled={isAwatingAsyncEvent}
           onClick={() => {
-            if (isAwatingAsyncEvent) return;
-
             setIsAwatingAsyncEvent(true);
             logout()
               .then(() => {
+                audioInfo.audio.pause();
+                setAudioInfo(null);
                 window.history.replaceState({ state: null }, document.title);
                 navigate("/");
               })
@@ -147,8 +153,12 @@ export function Dashboard() {
 
           return (
             <Component
+              isAwatingAsyncEvent={isAwatingAsyncEvent}
+              setIsAwatingAsyncEvent={setIsAwatingAsyncEvent}
               selectedRadio={selectedRadio}
               setSelectedRadio={setSelectedRadio}
+              audioInfo={audioInfo}
+              setAudioInfo={setAudioInfo}
             />
           );
         })()}

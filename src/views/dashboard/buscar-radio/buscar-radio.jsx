@@ -15,9 +15,17 @@ import styles from "./buscar-radio.module.css";
 import { getSearchResult } from "../../../api/radio-browser";
 
 import genericRadioImg from "../../../assets/dashboard/generic-radio-image.svg";
+import { setAlertInfo } from "../../../App";
 
 export function SearchRadio(props) {
-  const { selectedRadio, setSelectedRadio } = props;
+  const {
+    selectedRadio,
+    setSelectedRadio,
+    audioInfo,
+    setAudioInfo,
+    isAwatingAsyncEvent,
+    setIsAwatingAsyncEvent,
+  } = props;
 
   const [isSearching, setIsSearching] = useState(false);
   const [searchVal, setSearchVal] = useState("");
@@ -61,7 +69,29 @@ export function SearchRadio(props) {
         }}
       >
         <CardActionArea
-          onClick={() => setSelectedRadio(radio)}
+          onClick={() => {
+            if (
+              !selectedRadio ||
+              selectedRadio.stationuuid !== radio.stationuuid
+            ) {
+              setSelectedRadio(radio);
+
+              setIsAwatingAsyncEvent(true);
+              setAudioInfo({ ...audioInfo, shouldRefreshAudio: false });
+              audioInfo.audio.src = radio.url_resolved;
+              audioInfo.audio
+                .play()
+                .catch((err) => {
+                  console.log(err);
+                  setAlertInfo({
+                    severity: "error",
+                    message: "Falha ao tocar rádio",
+                  });
+                })
+                .finally(() => setIsAwatingAsyncEvent(false));
+            }
+          }}
+          disabled={isAwatingAsyncEvent}
           sx={{
             width: "100%",
             height: "100%",

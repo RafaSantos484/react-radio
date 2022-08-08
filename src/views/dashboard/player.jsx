@@ -1,22 +1,53 @@
-import { Card, Box, CardContent, Typography, IconButton } from "@mui/material";
+import { Card, Box, Typography, IconButton } from "@mui/material";
 import { SkipPrevious, PlayArrow, SkipNext, Pause } from "@mui/icons-material";
 import CardMedia from "@mui/material/CardMedia";
 
 import genericRadioImg from "../../assets/dashboard/generic-radio-image.svg";
 import { useState } from "react";
+import { setAlertInfo } from "../../App";
 
 export function Player(props) {
-  const { selectedRadio, setSelectedRadio } = props;
+  const {
+    selectedRadio,
+    audioInfo,
+    setAudioInfo,
+    isAwatingAsyncEvent,
+    setIsAwatingAsyncEvent,
+  } = props;
 
-  const audio = useState(new Audio())[0];
+  const [isPaused, setIsPaused] = useState(false);
 
   if (!selectedRadio) return <></>;
 
-  console.log(selectedRadio);
-  if (audio.src !== selectedRadio.url_resolved) {
-    audio.src = selectedRadio.url_resolved;
-    audio.play();
-  }
+  audioInfo.audio.onpause = () => {
+    setIsPaused(true);
+    setAudioInfo({ ...audioInfo, shouldRefreshAudio: true });
+  };
+  audioInfo.audio.onplaying = () => {
+    if (audioInfo.shouldRefreshAudio) {
+      audioInfo.audio.pause();
+
+      const newAudio = new Audio(selectedRadio.url_resolved);
+      setIsAwatingAsyncEvent(true);
+      newAudio
+        .play()
+        .catch((err) => {
+          console.log(err);
+          setAlertInfo({
+            severity: "error",
+            message: "Falha ao tocar rádio",
+          });
+        })
+        .then(() => {
+          setAudioInfo({ audio: newAudio, shouldRefreshAudio: false });
+          setIsPaused(false);
+        })
+        .finally(() => setIsAwatingAsyncEvent(false));
+    } else {
+      setIsPaused(false);
+    }
+  };
+
   return (
     <Card
       sx={{
@@ -48,13 +79,34 @@ export function Player(props) {
         {selectedRadio.name}
       </Typography>
       <Box sx={{ display: "flex", justifyContent: "center" }}>
-        <IconButton>
+        <IconButton disabled={isAwatingAsyncEvent}>
           <SkipPrevious />
         </IconButton>
-        <IconButton onClick={() => {}}>
-          {true ? <Pause /> : <PlayArrow />}
+        <IconButton
+          disabled={isAwatingAsyncEvent}
+          onClick={() => {
+            if (audioInfo.audio.paused) {
+              // solicitou que toque rádio
+              setIsAwatingAsyncEvent(true);
+              audioInfo.audio
+                .play()
+                .catch((err) => {
+                  console.log(err);
+                  setAlertInfo({
+                    severity: "error",
+                    message: "Falha ao tocar rádio",
+                  });
+                })
+                .finally(() => setIsAwatingAsyncEvent(false));
+            } else {
+              // pausou rádio
+              audioInfo.audio.pause();
+            }
+          }}
+        >
+          {isPaused ? <PlayArrow /> : <Pause />}
         </IconButton>
-        <IconButton>
+        <IconButton disabled={isAwatingAsyncEvent}>
           <SkipNext />
         </IconButton>
       </Box>
