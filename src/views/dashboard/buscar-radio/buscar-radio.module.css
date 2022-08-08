@@ -5,6 +5,7 @@
 .container {
   display: flex;
   flex-direction: column;
+  overflow: auto;
   width: 100%;
   background: linear-gradient(
     90deg,
@@ -24,6 +25,7 @@
 
 .searchResultDiv {
   display: flex;
+  flex-wrap: wrap;
   width: 100%;
   height: calc(100vh - var(--search-area-div-height));
   justify-content: center;

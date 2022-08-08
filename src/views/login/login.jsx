@@ -9,7 +9,6 @@ import { StyledTextField } from "../../components/styled-components";
 import {
   onRetrieveLoggedUser,
   login,
-  loginAnonymously,
   sendVerificationEmail,
 } from "../../api/firebase";
 import { setAlertInfo } from "../../App";
@@ -32,14 +31,15 @@ export function Login() {
     setIsAwatingAsyncEvent(true);
 
     if (isLoggingInAnonymously) {
-      return loginAnonymously()
+      /*return loginAnonymously()
         .catch((err) =>
           setAlertInfo({
             severity: "error",
             message: err.message,
           })
         )
-        .finally(() => setIsAwatingAsyncEvent(false));
+        .finally(() => setIsAwatingAsyncEvent(false));*/
+      return navigate("/dashboard", { state: { isAnonymous: true } });
     }
 
     setEmail(email.trim());
@@ -68,7 +68,7 @@ export function Login() {
     if (isGettingUser) {
       return onRetrieveLoggedUser((user) => {
         if (user && (user.emailVerified || user.isAnonymous))
-          navigate("/dashboard");
+          navigate("/dashboard", { state: { isAnonymous: false } });
 
         setIsGettingUser(false);
 

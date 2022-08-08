@@ -1,11 +1,9 @@
 import { initializeApp } from "firebase/app";
 import {
   createUserWithEmailAndPassword,
-  deleteUser,
   getAuth,
   onAuthStateChanged,
   sendEmailVerification,
-  signInAnonymously,
   signInWithEmailAndPassword,
   signOut,
   updateProfile,
@@ -119,44 +117,11 @@ export async function login(email, password) {
   }
 }
 
-export async function loginAnonymously() {
+export async function logout() {
   try {
     const auth = getAuth(firebaseApp);
 
-    return await signInAnonymously(auth);
-  } catch (err) {
-    console.log(err.code);
-
-    let message;
-    if (err.code) {
-      switch (err.code) {
-        case "auth/too-many-requests":
-          message =
-            "ERRO: Muitas requisições feitas. Aguarde um instante e tente novamente";
-          break;
-        default:
-          message = "ERRO: Falha ao realizar login. Tente novamente mais tarde";
-      }
-    } else {
-      message = "ERRO: Falha ao realizar login. Tente novamente mais tarde";
-    }
-
-    throw new Error(message);
-  }
-}
-
-export async function logout(user) {
-  try {
-    const auth = getAuth(firebaseApp);
-
-    // TODO: remover informações de usuário do realtime database se for anônimo
-
-    /*await signOut(auth);
-    if (user.isAnonymous) {
-      await deleteUser(user);
-    }*/
-
-    return await (user.isAnonymous ? deleteUser(user) : signOut(auth));
+    return await signOut(auth);
   } catch (err) {
     console.log(err.code);
     let message;

@@ -4,14 +4,20 @@ import {
   IconButton,
   TextField,
   Typography,
+  Card,
+  CardActionArea,
+  CardContent,
+  CardMedia,
 } from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
+import { Search } from "@mui/icons-material";
 
 import styles from "./buscar-radio.module.css";
 import { getSearchResult } from "../../../api/radio-browser";
 
+import genericRadioImg from "../../../assets/dashboard/generic-radio-image.svg";
+
 export function SearchRadio(props) {
-  const { audio } = props;
+  const { selectedRadio, setSelectedRadio } = props;
 
   const [isSearching, setIsSearching] = useState(false);
   const [searchVal, setSearchVal] = useState("");
@@ -38,10 +44,60 @@ export function SearchRadio(props) {
     if (searchResult.length === 0)
       return <Typography>Nenhuma rádio encontrada</Typography>;
 
-    console.log(searchResult);
-    audio.src = searchResult[0].url_resolved;
-    audio.play();
-    return <Typography>Temp...</Typography>;
+    const typographyStyle = {
+      textOverflow: "ellipsis",
+      whiteSpace: "nowrap",
+      overflow: "hidden",
+      //marginBottom: "0.5em",
+    };
+    return searchResult.map((radio) => (
+      <Card
+        key={radio.stationuuid}
+        sx={{
+          width: "18vw",
+          minWidth: "280px",
+          height: "45vh",
+          margin: "0.5em",
+        }}
+      >
+        <CardActionArea
+          onClick={() => setSelectedRadio(radio)}
+          sx={{
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+          }}
+        >
+          <CardMedia
+            component="img"
+            image={radio.favicon !== "" ? radio.favicon : genericRadioImg}
+            alt="radio favicon"
+            sx={{
+              height: "70%",
+              minHeight: "150px",
+              width: "auto",
+              padding: "0.3em",
+            }}
+          />
+          <CardContent sx={{ width: "95%" }}>
+            <Typography variant="h6" component="div" sx={typographyStyle}>
+              {radio.name}
+            </Typography>
+            <Typography
+              variant="h7"
+              color="text.secondary"
+              sx={typographyStyle}
+            >
+              {`${radio.state !== "" ? `${radio.state}, ` : ""}${
+                radio.countrycode !== "" ? `${radio.countrycode}` : ""
+              }`}
+            </Typography>
+          </CardContent>
+        </CardActionArea>
+      </Card>
+    ));
   }
 
   return (
@@ -64,7 +120,7 @@ export function SearchRadio(props) {
           InputProps={{
             endAdornment: (
               <IconButton onClick={() => handleSearch()}>
-                <SearchIcon sx={{ color: "#ad323f" }} />
+                <Search sx={{ color: "#ad323f" }} />
               </IconButton>
             ),
           }}
@@ -74,7 +130,7 @@ export function SearchRadio(props) {
       </div>
       <div className={styles.searchResultDiv}>
         {isSearching ? (
-          <CircularProgress size="10vw" sx={{ color: "#ef7d1e" }} />
+          <CircularProgress size="10vw" sx={{ color: "#ad323f" }} />
         ) : (
           <ResultComponent />
         )}

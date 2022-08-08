@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Tab, Tabs, Button, Typography, CircularProgress } from "@mui/material";
 import { History, Favorite, Search } from "@mui/icons-material";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import styles from "./dashboard.module.css";
 
@@ -12,11 +12,15 @@ import { SearchRadio } from "./buscar-radio/buscar-radio";
 import { Player } from "./player";
 
 export function Dashboard() {
+  const state = useLocation().state;
+  const isAnonymous = state ? state.isAnonymous : -1;
   const navigate = useNavigate();
+
   const [user, setUser] = useState(null);
   const [isAwatingAsyncEvent, setIsAwatingAsyncEvent] = useState(false);
 
-  const audio = useState(new Audio())[0];
+  //const audio = useState(new Audio())[0];
+  const [selectedRadio, setSelectedRadio] = useState(null);
 
   const [tabsIndex, setTabsIndex] = useState(0);
   const [tabs, setTabs] = useState([
@@ -33,28 +37,30 @@ export function Dashboard() {
   useEffect(() => {
     document.title = "Dashboard";
 
-    if (!user) {
-      return onRetrieveLoggedUser((user) => {
-        console.log(user);
-        if (user) {
-          if (user.emailVerified) {
-            setTabs(
-              tabs.concat({
-                label: "Favoritos",
-                icon: Favorite,
-              })
-            );
-          } else if (!user.isAnonymous) {
-            return navigate("/");
-          }
+    if (isAnonymous === -1) return navigate("/");
 
-          setUser(user);
+    if (!user) {
+      if (isAnonymous) {
+        return setUser({ isAnonymous, history: [] });
+      }
+
+      return onRetrieveLoggedUser((retrievedUser) => {
+        console.log(retrievedUser);
+        if (retrievedUser && retrievedUser.emailVerified) {
+          setTabs(
+            tabs.concat({
+              label: "Favoritos",
+              icon: Favorite,
+            })
+          );
+          setUser({ isAnonymous: false, name: retrievedUser.displayName });
+          //TODO: obter histórico e favoritos do realtime database
         } else {
           navigate("/");
         }
       });
     }
-  });
+  }, [user, isAnonymous, tabs, navigate]);
 
   if (!user)
     return (
@@ -63,6 +69,7 @@ export function Dashboard() {
       </div>
     );
 
+  console.log(user);
   return (
     <div className={styles.container}>
       <div className={styles.leftBar}>
@@ -93,7 +100,10 @@ export function Dashboard() {
             );
           })}
         </Tabs>
-        <Player />
+        <Player
+          selectedRadio={selectedRadio}
+          setSelectedRadio={setSelectedRadio}
+        />
         <Button
           variant="outlined"
           sx={{
@@ -113,7 +123,11 @@ export function Dashboard() {
             if (isAwatingAsyncEvent) return;
 
             setIsAwatingAsyncEvent(true);
-            logout(user)
+            logout()
+              .then(() => {
+                window.history.replaceState({ state: null }, document.title);
+                navigate("/");
+              })
               .catch((err) =>
                 setAlertInfo({
                   severity: "error",
@@ -131,7 +145,12 @@ export function Dashboard() {
           const Temp = () => <Typography>temp...</Typography>;
           const Component = [SearchRadio, Temp, Temp][tabsIndex];
 
-          return <Component audio={audio} />;
+          return (
+            <Component
+              selectedRadio={selectedRadio}
+              setSelectedRadio={setSelectedRadio}
+            />
+          );
         })()}
       </div>
     </div>
