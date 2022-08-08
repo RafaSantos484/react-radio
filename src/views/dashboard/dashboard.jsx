@@ -79,7 +79,7 @@ export function Dashboard() {
           TabIndicatorProps={{ style: { background: "#ad323f" } }}
           value={tabsIndex}
           onChange={(event, newIndex) => setTabsIndex(newIndex)}
-          sx={{ margin: "2em 0" }}
+          sx={{ margin: "2em 0", width: "100%" }}
         >
           {tabs.map((tab, index) => {
             const Icon = tab.icon;

@@ -15,7 +15,7 @@ export function Player(props) {
   console.log(selectedRadio);
   if (audio.src !== selectedRadio.url_resolved) {
     audio.src = selectedRadio.url_resolved;
-    //audio.play();
+    audio.play();
   }
   return (
     <Card
@@ -26,9 +26,6 @@ export function Player(props) {
         alignItems: "center",
       }}
     >
-      <audio controls>
-        <source src={selectedRadio.url_resolved} type="audio/ogg" />
-      </audio>
       <CardMedia
         component="img"
         image={
