@@ -1,18 +1,18 @@
-import styles from "./historico.module.css";
+import styles from "./favoritos.module.css";
 
 import { setDoc } from "../../../api/firebase";
 import { RadioCard } from "../../../components/radio-card";
 import { playAudio } from "../../../api/radio-browser";
 import { useState } from "react";
 
-export function History(props) {
+export function Favorites(props) {
   const { user, setUser, setSelectedRadio, audio } = props;
 
   const [isAwatingAsyncEvent, setIsAwatingAsyncEvent] = useState(false);
 
   return (
     <div className={styles.container}>
-      {user.history
+      {user.favorites
         .map((radio) => (
           <RadioCard
             key={radio.id}
@@ -21,7 +21,7 @@ export function History(props) {
             radio={radio}
             user={user}
             setUser={setUser}
-            page="histórico"
+            page="favoritos"
             onClick={async () => {
               setSelectedRadio(radio);
 

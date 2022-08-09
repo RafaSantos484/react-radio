@@ -17,7 +17,7 @@ export async function getSearchResult(radioName) {
   return await response.json();
 }
 
-export function playAudio(audio, setIsAwatingAsyncEvent) {
+export function playAudio(audio, setIsAwatingAsyncEvent = null) {
   audio
     .play()
     .catch((err) => {
@@ -34,5 +34,7 @@ export function playAudio(audio, setIsAwatingAsyncEvent) {
         message: "Falha ao tocar rádio",
       });
     })
-    .finally(() => setIsAwatingAsyncEvent(false));
+    .finally(() => {
+      if (setIsAwatingAsyncEvent) setIsAwatingAsyncEvent(false);
+    });
 }

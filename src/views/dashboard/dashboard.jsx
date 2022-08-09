@@ -11,6 +11,7 @@ import { setAlertInfo } from "../../App";
 import { SearchRadio } from "./buscar-radio/buscar-radio";
 import { History as HistoryComponent } from "./historico/historico";
 import { Player } from "./player";
+import { Favorites } from "./favoritos/favoritos";
 
 export function Dashboard() {
   const state = useLocation().state;
@@ -20,10 +21,6 @@ export function Dashboard() {
   const [user, setUser] = useState(null);
   const [isAwatingAsyncEvent, setIsAwatingAsyncEvent] = useState(false);
 
-  /*const [audioInfo, setAudioInfo] = useState({
-    audio: new Audio(),
-    shouldRefreshAudio: false,
-  });*/
   const audio = useState(new Audio())[0];
   const [selectedRadio, setSelectedRadio] = useState(null);
 
@@ -64,14 +61,15 @@ export function Dashboard() {
             const history = val && val.history ? val.history : [];
             const favorites = val && val.favorites ? val.favorites : [];
 
-            if (!user) setIsAwatingAsyncEvent(false);
             setUser({
               id: retrievedUser.uid,
               isAnonymous: false,
               name: retrievedUser.displayName,
               history,
               favorites,
+              playlist: [],
             });
+            setIsAwatingAsyncEvent(false);
           }).catch((err) => {
             console.log(err);
             setAlertInfo({
@@ -96,7 +94,7 @@ export function Dashboard() {
   return (
     <div className={styles.container}>
       <div className={styles.leftBar}>
-        <img src={logo} alt="logo" draggable={false} />
+        <img src={logo} alt="logo" draggable={false} style={{ width: "80%" }} />
         <Tabs
           orientation="vertical"
           TabIndicatorProps={{ style: { background: "#ad323f" } }}
@@ -123,7 +121,7 @@ export function Dashboard() {
             );
           })}
         </Tabs>
-        <Player selectedRadio={selectedRadio} audio={audio} />
+        <Player selectedRadio={selectedRadio} audio={audio} user={user} />
         <Button
           variant="outlined"
           sx={{
@@ -161,14 +159,14 @@ export function Dashboard() {
       </div>
       <div className={styles.selectedPageDiv}>
         {(() => {
-          const Temp = () => <Typography>temp...</Typography>;
-          const Component = [SearchRadio, HistoryComponent, Temp][tabsIndex];
+          const Component = [SearchRadio, HistoryComponent, Favorites][
+            tabsIndex
+          ];
 
           return (
             <Component
               user={user}
               setUser={setUser}
-              selectedRadio={selectedRadio}
               setSelectedRadio={setSelectedRadio}
               audio={audio}
             />

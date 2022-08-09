@@ -14,7 +14,7 @@ import { setDoc } from "../../../api/firebase";
 import { RadioCard } from "../../../components/radio-card";
 
 export function SearchRadio(props) {
-  const { user, setUser, selectedRadio, setSelectedRadio, audio } = props;
+  const { user, setUser, setSelectedRadio, audio } = props;
 
   const [isSearching, setIsSearching] = useState(false);
   const [searchVal, setSearchVal] = useState("");
@@ -56,22 +56,26 @@ export function SearchRadio(props) {
         <RadioCard
           key={radio.id}
           isAwatingAsyncEvent={isAwatingAsyncEvent}
+          setIsAwatingAsyncEvent={setIsAwatingAsyncEvent}
           radio={radio}
+          user={user}
+          setUser={setUser}
+          page="buscar rádio"
           onClick={async () => {
-            if (!selectedRadio || selectedRadio.id !== radio.id) {
-              setIsAwatingAsyncEvent(true);
+            setIsAwatingAsyncEvent(true);
 
-              let newHistory = user.history.filter((r) => r.id !== radio.id);
-              newHistory.push(radio);
-              user.isAnonymous
-                ? setUser({ ...user, history: newHistory })
-                : await setDoc(`users/${user.id}/history`, newHistory);
+            let newHistory = user.history.filter((r) => r.id !== radio.id);
+            newHistory.push(radio);
+            user.isAnonymous
+              ? setUser({ ...user, history: newHistory })
+              : await setDoc(`users/${user.id}/history`, newHistory);
 
-              setSelectedRadio(radio);
-              audio.load();
-              audio.src = radio.url;
-              playAudio(audio, setIsAwatingAsyncEvent);
-            }
+            setSelectedRadio(radio);
+            setIsAwatingAsyncEvent(false);
+
+            audio.load();
+            audio.src = radio.url;
+            playAudio(audio);
           }}
         />
       ))

@@ -29,9 +29,6 @@
   flex-direction: column;
   align-items: center;
 }
-.leftBar img {
-  width: 80%;
-}
 
 .selectedPageDiv {
   display: flex;

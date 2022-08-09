@@ -7,7 +7,7 @@ import { useState } from "react";
 import { playAudio } from "../../api/radio-browser";
 
 export function Player(props) {
-  const { selectedRadio, audio } = props;
+  const { selectedRadio, audio, user } = props;
 
   const [isPaused, setIsPaused] = useState(false);
   const [audioInfo, setAudioInfo] = useState({
@@ -20,12 +20,13 @@ export function Player(props) {
 
   audioInfo.audio.onpause = () => {
     setIsPaused(true);
-    if (!isAwatingAsyncEvent)
-      setAudioInfo({ ...audioInfo, shouldReloadAudio: true });
+    //if (!isAwatingAsyncEvent)
+    setAudioInfo({ ...audioInfo, shouldReloadAudio: true });
   };
   audioInfo.audio.onplay = () => setIsAwatingAsyncEvent(true);
   audioInfo.audio.onplaying = () => {
     if (audioInfo.shouldReloadAudio) {
+      setIsAwatingAsyncEvent(true);
       audioInfo.audio.load();
       setAudioInfo({ ...audioInfo, shouldReloadAudio: false });
       playAudio(audioInfo.audio, setIsAwatingAsyncEvent);
@@ -40,6 +41,7 @@ export function Player(props) {
       sx={{
         width: "100%",
         display: "flex",
+        maxHeight: "35vh",
         flexDirection: "column",
         alignItems: "center",
       }}
@@ -51,7 +53,7 @@ export function Player(props) {
         }
         draggable={false}
         alt="radio favicon"
-        sx={{ maxHeight: "30vh", height: "auto", width: "100%" }}
+        sx={{ maxHeight: "70%", width: "auto" }}
       />
       <Typography
         component="div"
@@ -67,7 +69,11 @@ export function Player(props) {
         {selectedRadio.name}
       </Typography>
       <Box sx={{ display: "flex", justifyContent: "center" }}>
-        <IconButton disabled={isAwatingAsyncEvent}>
+        <IconButton
+          disabled={
+            isAwatingAsyncEvent || !user.playlist || user.playlist.length === 0
+          }
+        >
           <SkipPrevious />
         </IconButton>
         <IconButton
@@ -85,7 +91,11 @@ export function Player(props) {
         >
           {isPaused ? <PlayArrow /> : <Pause />}
         </IconButton>
-        <IconButton disabled={isAwatingAsyncEvent}>
+        <IconButton
+          disabled={
+            isAwatingAsyncEvent || !user.playlist || user.playlist.length === 0
+          }
+        >
           <SkipNext />
         </IconButton>
       </Box>
