@@ -67,7 +67,7 @@ export function Login() {
     document.title = "Login";
     if (isGettingUser) {
       return onRetrieveLoggedUser((user) => {
-        if (user && (user.emailVerified || user.isAnonymous))
+        if (user && user.emailVerified)
           navigate("/dashboard", { state: { isAnonymous: false } });
 
         setIsGettingUser(false);
@@ -118,7 +118,7 @@ export function Login() {
 
       <Slide direction="right" in={formIn} timeout={1200}>
         <form onSubmit={(event) => handleSubmit(event)} className={styles.form}>
-          <img src={logo} alt="logo" />
+          <img src={logo} alt="logo" draggable={false} />
           <StyledTextField
             label="E-mail"
             variant="outlined"

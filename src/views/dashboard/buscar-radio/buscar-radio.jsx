@@ -4,32 +4,22 @@ import {
   IconButton,
   TextField,
   Typography,
-  Card,
-  CardActionArea,
-  CardContent,
-  CardMedia,
 } from "@mui/material";
 import { Search } from "@mui/icons-material";
 
 import styles from "./buscar-radio.module.css";
-import { getSearchResult } from "../../../api/radio-browser";
+import { getSearchResult, playAudio } from "../../../api/radio-browser";
 
-import genericRadioImg from "../../../assets/dashboard/generic-radio-image.svg";
-import { setAlertInfo } from "../../../App";
+import { setDoc } from "../../../api/firebase";
+import { RadioCard } from "../../../components/radio-card";
 
 export function SearchRadio(props) {
-  const {
-    selectedRadio,
-    setSelectedRadio,
-    audioInfo,
-    setAudioInfo,
-    isAwatingAsyncEvent,
-    setIsAwatingAsyncEvent,
-  } = props;
+  const { user, setUser, selectedRadio, setSelectedRadio, audio } = props;
 
   const [isSearching, setIsSearching] = useState(false);
   const [searchVal, setSearchVal] = useState("");
   const [searchResult, setSearchResult] = useState(null);
+  const [isAwatingAsyncEvent, setIsAwatingAsyncEvent] = useState(false);
 
   function handleSearch(keyCode = "Enter") {
     if (keyCode !== "Enter") return;
@@ -41,7 +31,16 @@ export function SearchRadio(props) {
     getSearchResult(searchVal)
       .then((results) =>
         setSearchResult(
-          results.filter((result) => result.name && result.url_resolved)
+          results
+            .filter((result) => result.name && result.url_resolved)
+            .map((result) => ({
+              id: result.stationuuid,
+              name: result.name,
+              url: result.url_resolved,
+              favicon: result.favicon,
+              state: result.state,
+              countryCode: result.countrycode,
+            }))
         )
       )
       .finally(() => setIsSearching(false));
@@ -52,82 +51,31 @@ export function SearchRadio(props) {
     if (searchResult.length === 0)
       return <Typography>Nenhuma rádio encontrada</Typography>;
 
-    const typographyStyle = {
-      textOverflow: "ellipsis",
-      whiteSpace: "nowrap",
-      overflow: "hidden",
-      //marginBottom: "0.5em",
-    };
-    return searchResult.map((radio) => (
-      <Card
-        key={radio.stationuuid}
-        sx={{
-          width: "18vw",
-          minWidth: "280px",
-          height: "45vh",
-          margin: "0.5em",
-        }}
-      >
-        <CardActionArea
-          onClick={() => {
-            if (
-              !selectedRadio ||
-              selectedRadio.stationuuid !== radio.stationuuid
-            ) {
-              setSelectedRadio(radio);
-
+    return searchResult
+      .map((radio) => (
+        <RadioCard
+          key={radio.id}
+          isAwatingAsyncEvent={isAwatingAsyncEvent}
+          radio={radio}
+          onClick={async () => {
+            if (!selectedRadio || selectedRadio.id !== radio.id) {
               setIsAwatingAsyncEvent(true);
-              setAudioInfo({ ...audioInfo, shouldRefreshAudio: false });
-              audioInfo.audio.src = radio.url_resolved;
-              audioInfo.audio
-                .play()
-                .catch((err) => {
-                  console.log(err);
-                  setAlertInfo({
-                    severity: "error",
-                    message: "Falha ao tocar rádio",
-                  });
-                })
-                .finally(() => setIsAwatingAsyncEvent(false));
+
+              let newHistory = user.history.filter((r) => r.id !== radio.id);
+              newHistory.push(radio);
+              user.isAnonymous
+                ? setUser({ ...user, history: newHistory })
+                : await setDoc(`users/${user.id}/history`, newHistory);
+
+              setSelectedRadio(radio);
+              audio.load();
+              audio.src = radio.url;
+              playAudio(audio, setIsAwatingAsyncEvent);
             }
           }}
-          disabled={isAwatingAsyncEvent}
-          sx={{
-            width: "100%",
-            height: "100%",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-          }}
-        >
-          <CardMedia
-            component="img"
-            image={radio.favicon !== "" ? radio.favicon : genericRadioImg}
-            alt="radio favicon"
-            sx={{
-              height: "70%",
-              minHeight: "150px",
-              width: "auto",
-              padding: "0.3em",
-            }}
-          />
-          <CardContent sx={{ width: "95%" }}>
-            <Typography variant="h6" component="div" sx={typographyStyle}>
-              {radio.name}
-            </Typography>
-            <Typography
-              variant="h7"
-              color="text.secondary"
-              sx={typographyStyle}
-            >
-              {`${radio.state !== "" ? `${radio.state}, ` : ""}${
-                radio.countrycode !== "" ? `${radio.countrycode}` : ""
-              }`}
-            </Typography>
-          </CardContent>
-        </CardActionArea>
-      </Card>
-    ));
+        />
+      ))
+      .reverse();
   }
 
   return (

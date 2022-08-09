@@ -24,7 +24,7 @@ function App() {
 
 import { useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AlertComponent } from "./components/alertComponent.jsx";
+import { AlertComponent } from "./components/alert-component.jsx";
 import { Register } from "./views/cadastro/cadastro.jsx";
 import { Dashboard } from "./views/dashboard/dashboard.jsx";
 import { Login } from "./views/login/login.jsx";

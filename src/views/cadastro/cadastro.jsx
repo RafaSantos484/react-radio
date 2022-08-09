@@ -111,7 +111,7 @@ export function Register() {
 
       <div className={styles.imageDiv}>
         <Slide direction="right" in={registerImgIn} timeout={700}>
-          <img src={registerImg} alt="Imagem cadastro" />
+          <img src={registerImg} alt="Imagem cadastro" draggable={false} />
         </Slide>
       </div>
       <Slide direction="right" in={formIn} timeout={800}>
@@ -122,6 +122,7 @@ export function Register() {
             }}
             src={logo}
             alt="logo"
+            draggable={false}
           />
           <Typography variant="h4" sx={{ color: "#ad323f", margin: "0.5em" }}>
             Cadastro

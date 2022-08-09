@@ -6,9 +6,10 @@ import { useLocation, useNavigate } from "react-router-dom";
 import styles from "./dashboard.module.css";
 
 import logo from "../../assets/logo.png";
-import { onRetrieveLoggedUser, logout } from "../../api/firebase";
+import { onRetrieveLoggedUser, logout, getDoc } from "../../api/firebase";
 import { setAlertInfo } from "../../App";
 import { SearchRadio } from "./buscar-radio/buscar-radio";
+import { History as HistoryComponent } from "./historico/historico";
 import { Player } from "./player";
 
 export function Dashboard() {
@@ -19,10 +20,11 @@ export function Dashboard() {
   const [user, setUser] = useState(null);
   const [isAwatingAsyncEvent, setIsAwatingAsyncEvent] = useState(false);
 
-  const [audioInfo, setAudioInfo] = useState({
+  /*const [audioInfo, setAudioInfo] = useState({
     audio: new Audio(),
     shouldRefreshAudio: false,
-  });
+  });*/
+  const audio = useState(new Audio())[0];
   const [selectedRadio, setSelectedRadio] = useState(null);
 
   const [tabsIndex, setTabsIndex] = useState(0);
@@ -47,23 +49,41 @@ export function Dashboard() {
         return setUser({ isAnonymous, history: [] });
       }
 
-      return onRetrieveLoggedUser((retrievedUser) => {
-        console.log(retrievedUser);
-        if (retrievedUser && retrievedUser.emailVerified) {
+      if (!isAwatingAsyncEvent) {
+        setIsAwatingAsyncEvent(true);
+        onRetrieveLoggedUser((retrievedUser) => {
+          if (!retrievedUser) return navigate("/");
+
           setTabs(
             tabs.concat({
               label: "Favoritos",
               icon: Favorite,
             })
           );
-          setUser({ isAnonymous: false, name: retrievedUser.displayName });
-          //TODO: obter histórico e favoritos do realtime database
-        } else {
-          navigate("/");
-        }
-      });
+          getDoc(`users/${retrievedUser.uid}`, (val) => {
+            const history = val && val.history ? val.history : [];
+            const favorites = val && val.favorites ? val.favorites : [];
+
+            if (!user) setIsAwatingAsyncEvent(false);
+            setUser({
+              id: retrievedUser.uid,
+              isAnonymous: false,
+              name: retrievedUser.displayName,
+              history,
+              favorites,
+            });
+          }).catch((err) => {
+            console.log(err);
+            setAlertInfo({
+              severity: "error",
+              message:
+                "Falha ao obter dados do usuário. Recarregue a página para tentar novamente",
+            });
+          });
+        });
+      }
     }
-  }, [user, isAnonymous, tabs, navigate]);
+  }, [isAnonymous, navigate, user, isAwatingAsyncEvent, tabs]);
 
   if (!user)
     return (
@@ -76,7 +96,7 @@ export function Dashboard() {
   return (
     <div className={styles.container}>
       <div className={styles.leftBar}>
-        <img src={logo} alt="logo" />
+        <img src={logo} alt="logo" draggable={false} />
         <Tabs
           orientation="vertical"
           TabIndicatorProps={{ style: { background: "#ad323f" } }}
@@ -103,18 +123,12 @@ export function Dashboard() {
             );
           })}
         </Tabs>
-        <Player
-          isAwatingAsyncEvent={isAwatingAsyncEvent}
-          setIsAwatingAsyncEvent={setIsAwatingAsyncEvent}
-          selectedRadio={selectedRadio}
-          audioInfo={audioInfo}
-          setAudioInfo={setAudioInfo}
-        />
+        <Player selectedRadio={selectedRadio} audio={audio} />
         <Button
           variant="outlined"
           sx={{
             position: "absolute",
-            bottom: "10vh",
+            bottom: "3vh",
             backgroundColor: "inherit",
             color: "#ad323f",
             borderColor: "#ad323f",
@@ -129,8 +143,7 @@ export function Dashboard() {
             setIsAwatingAsyncEvent(true);
             logout()
               .then(() => {
-                audioInfo.audio.pause();
-                setAudioInfo(null);
+                audio.load();
                 window.history.replaceState({ state: null }, document.title);
                 navigate("/");
               })
@@ -149,16 +162,15 @@ export function Dashboard() {
       <div className={styles.selectedPageDiv}>
         {(() => {
           const Temp = () => <Typography>temp...</Typography>;
-          const Component = [SearchRadio, Temp, Temp][tabsIndex];
+          const Component = [SearchRadio, HistoryComponent, Temp][tabsIndex];
 
           return (
             <Component
-              isAwatingAsyncEvent={isAwatingAsyncEvent}
-              setIsAwatingAsyncEvent={setIsAwatingAsyncEvent}
+              user={user}
+              setUser={setUser}
               selectedRadio={selectedRadio}
               setSelectedRadio={setSelectedRadio}
-              audioInfo={audioInfo}
-              setAudioInfo={setAudioInfo}
+              audio={audio}
             />
           );
         })()}

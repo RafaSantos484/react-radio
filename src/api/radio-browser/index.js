@@ -1,3 +1,5 @@
+import { setAlertInfo } from "../../App";
+
 export async function getSearchResult(radioName) {
   const init = {
     method: "GET",
@@ -13,4 +15,24 @@ export async function getSearchResult(radioName) {
   );
 
   return await response.json();
+}
+
+export function playAudio(audio, setIsAwatingAsyncEvent) {
+  audio
+    .play()
+    .catch((err) => {
+      if (
+        err.message.startsWith(
+          "The play() request was interrupted by a new load request."
+        )
+      )
+        return;
+
+      console.log(err);
+      setAlertInfo({
+        severity: "error",
+        message: "Falha ao tocar rádio",
+      });
+    })
+    .finally(() => setIsAwatingAsyncEvent(false));
 }

@@ -4,46 +4,32 @@ import CardMedia from "@mui/material/CardMedia";
 
 import genericRadioImg from "../../assets/dashboard/generic-radio-image.svg";
 import { useState } from "react";
-import { setAlertInfo } from "../../App";
+import { playAudio } from "../../api/radio-browser";
 
 export function Player(props) {
-  const {
-    selectedRadio,
-    audioInfo,
-    setAudioInfo,
-    isAwatingAsyncEvent,
-    setIsAwatingAsyncEvent,
-  } = props;
+  const { selectedRadio, audio } = props;
 
   const [isPaused, setIsPaused] = useState(false);
+  const [audioInfo, setAudioInfo] = useState({
+    audio,
+    shouldReloadAudio: false,
+  });
+  const [isAwatingAsyncEvent, setIsAwatingAsyncEvent] = useState(true);
 
   if (!selectedRadio) return <></>;
 
   audioInfo.audio.onpause = () => {
     setIsPaused(true);
-    setAudioInfo({ ...audioInfo, shouldRefreshAudio: true });
+    if (!isAwatingAsyncEvent)
+      setAudioInfo({ ...audioInfo, shouldReloadAudio: true });
   };
+  audioInfo.audio.onplay = () => setIsAwatingAsyncEvent(true);
   audioInfo.audio.onplaying = () => {
-    if (audioInfo.shouldRefreshAudio) {
-      audioInfo.audio.pause();
-
-      const newAudio = new Audio(selectedRadio.url_resolved);
-      setIsAwatingAsyncEvent(true);
-      newAudio
-        .play()
-        .catch((err) => {
-          console.log(err);
-          setAlertInfo({
-            severity: "error",
-            message: "Falha ao tocar rádio",
-          });
-        })
-        .then(() => {
-          setAudioInfo({ audio: newAudio, shouldRefreshAudio: false });
-          setIsPaused(false);
-        })
-        .finally(() => setIsAwatingAsyncEvent(false));
+    if (audioInfo.shouldReloadAudio) {
+      audioInfo.audio.load();
+      playAudio(audioInfo.audio, setIsAwatingAsyncEvent);
     } else {
+      setIsAwatingAsyncEvent(false);
       setIsPaused(false);
     }
   };
@@ -62,6 +48,7 @@ export function Player(props) {
         image={
           selectedRadio.favicon !== "" ? selectedRadio.favicon : genericRadioImg
         }
+        draggable={false}
         alt="radio favicon"
         sx={{ maxHeight: "30vh", height: "auto", width: "100%" }}
       />
@@ -88,16 +75,7 @@ export function Player(props) {
             if (audioInfo.audio.paused) {
               // solicitou que toque rádio
               setIsAwatingAsyncEvent(true);
-              audioInfo.audio
-                .play()
-                .catch((err) => {
-                  console.log(err);
-                  setAlertInfo({
-                    severity: "error",
-                    message: "Falha ao tocar rádio",
-                  });
-                })
-                .finally(() => setIsAwatingAsyncEvent(false));
+              playAudio(audioInfo.audio, setIsAwatingAsyncEvent);
             } else {
               // pausou rádio
               audioInfo.audio.pause();

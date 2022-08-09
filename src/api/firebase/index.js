@@ -1,4 +1,5 @@
 import { initializeApp } from "firebase/app";
+import { get, getDatabase, ref, onValue, set } from "firebase/database";
 import {
   createUserWithEmailAndPassword,
   getAuth,
@@ -20,6 +21,20 @@ const firebaseConfig = {
 };
 
 const firebaseApp = initializeApp(firebaseConfig);
+
+export async function getDoc(path, onValueCallback = null) {
+  const dbRef = ref(getDatabase(firebaseApp), path);
+
+  return onValueCallback
+    ? onValue(dbRef, (snapshot) => onValueCallback(snapshot.val()))
+    : (await get(dbRef)).val();
+}
+
+export async function setDoc(path, data) {
+  const dbRef = ref(getDatabase(firebaseApp), path);
+
+  return await set(dbRef, data);
+}
 
 export function onRetrieveLoggedUser(callback) {
   const auth = getAuth(firebaseApp);
