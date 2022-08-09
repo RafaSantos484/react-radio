@@ -27,6 +27,7 @@ export function Player(props) {
   audioInfo.audio.onplaying = () => {
     if (audioInfo.shouldReloadAudio) {
       audioInfo.audio.load();
+      setAudioInfo({ ...audioInfo, shouldReloadAudio: false });
       playAudio(audioInfo.audio, setIsAwatingAsyncEvent);
     } else {
       setIsAwatingAsyncEvent(false);
