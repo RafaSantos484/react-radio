@@ -1,35 +1,80 @@
-import { Card, Box, Typography, IconButton } from "@mui/material";
-import { SkipPrevious, PlayArrow, SkipNext, Pause } from "@mui/icons-material";
-import CardMedia from "@mui/material/CardMedia";
+import { Card, Box, Typography, IconButton, CardMedia } from "@mui/material";
+import {
+  SkipPrevious,
+  PlayArrow,
+  SkipNext,
+  Pause,
+  Favorite,
+  Stop,
+} from "@mui/icons-material";
 
 import genericRadioImg from "../../assets/dashboard/generic-radio-image.svg";
 import { useState } from "react";
 import { playAudio } from "../../api/radio-browser";
+import { handleFavoriteClick } from "../../api/firebase";
+import { setAlertInfo } from "../../App";
 
 export function Player(props) {
-  const { selectedRadio, audio, user } = props;
+  const {
+    selectedRadio,
+    setSelectedRadio,
+    audio,
+    user,
+    playlistIndex,
+    setPlaylistIndex,
+  } = props;
 
   const [isPaused, setIsPaused] = useState(false);
-  const [audioInfo, setAudioInfo] = useState({
-    audio,
-    shouldReloadAudio: false,
-  });
+  const [shouldReloadAudio, setShouldReloadAudio] = useState(false);
   const [isAwatingAsyncEvent, setIsAwatingAsyncEvent] = useState(true);
 
   if (!selectedRadio) return <></>;
 
-  audioInfo.audio.onpause = () => {
+  function handleSkipPreviousTrack() {
+    setIsAwatingAsyncEvent(true);
+
+    const newIndex =
+      (playlistIndex - 1 + user.favorites.length) % user.favorites.length;
+    setPlaylistIndex(newIndex);
+
+    audio.src = user.favorites[newIndex].url;
+    setSelectedRadio(user.favorites[newIndex]);
+    playAudio(audio, user.favorites[newIndex], setIsAwatingAsyncEvent);
+  }
+
+  function handleSkipNextTrack() {
+    setIsAwatingAsyncEvent(true);
+
+    const newIndex = (playlistIndex + 1) % user.favorites.length;
+    setPlaylistIndex(newIndex);
+
+    audio.src = user.favorites[newIndex].url;
+    setSelectedRadio(user.favorites[newIndex]);
+    playAudio(audio, user.favorites[newIndex], setIsAwatingAsyncEvent);
+  }
+
+  navigator.mediaSession.setActionHandler(
+    "previoustrack",
+    playlistIndex === -1 ? null : handleSkipPreviousTrack
+  );
+  navigator.mediaSession.setActionHandler(
+    "nexttrack",
+    playlistIndex === -1 ? null : handleSkipNextTrack
+  );
+  navigator.mediaSession.setActionHandler("stop", () => setSelectedRadio(null));
+
+  audio.onpause = () => {
     setIsPaused(true);
     //if (!isAwatingAsyncEvent)
-    setAudioInfo({ ...audioInfo, shouldReloadAudio: true });
+    setShouldReloadAudio(true);
   };
-  audioInfo.audio.onplay = () => setIsAwatingAsyncEvent(true);
-  audioInfo.audio.onplaying = () => {
-    if (audioInfo.shouldReloadAudio) {
+  audio.onplay = () => setIsAwatingAsyncEvent(true);
+  audio.onplaying = () => {
+    if (shouldReloadAudio) {
       setIsAwatingAsyncEvent(true);
-      audioInfo.audio.load();
-      setAudioInfo({ ...audioInfo, shouldReloadAudio: false });
-      playAudio(audioInfo.audio, setIsAwatingAsyncEvent);
+      audio.load();
+      setShouldReloadAudio(false);
+      playAudio(audio, selectedRadio, setIsAwatingAsyncEvent);
     } else {
       setIsAwatingAsyncEvent(false);
       setIsPaused(false);
@@ -69,32 +114,59 @@ export function Player(props) {
         {selectedRadio.name}
       </Typography>
       <Box sx={{ display: "flex", justifyContent: "center" }}>
+        {!user.isAnonymous && (
+          <IconButton
+            disabled={isAwatingAsyncEvent}
+            sx={{
+              color: user.favorites.find((f) => f.id === selectedRadio.id)
+                ? "#ef7d1e"
+                : "",
+            }}
+            onClick={() => {
+              setIsAwatingAsyncEvent(true);
+              handleFavoriteClick(user, selectedRadio)
+                .catch((err) =>
+                  setAlertInfo({ severity: "error", message: err.message })
+                )
+                .finally(() => setIsAwatingAsyncEvent(false));
+            }}
+          >
+            <Favorite />
+          </IconButton>
+        )}
         <IconButton
-          disabled={
-            isAwatingAsyncEvent || !user.playlist || user.playlist.length === 0
-          }
+          disabled={playlistIndex === -1 || user.favorites.length === 1}
+          onClick={handleSkipPreviousTrack}
         >
           <SkipPrevious />
         </IconButton>
         <IconButton
           disabled={isAwatingAsyncEvent}
           onClick={() => {
-            if (audioInfo.audio.paused) {
+            if (audio.paused) {
               // solicitou que toque rádio
               setIsAwatingAsyncEvent(true);
-              playAudio(audioInfo.audio, setIsAwatingAsyncEvent);
+              playAudio(audio, selectedRadio, setIsAwatingAsyncEvent);
             } else {
               // pausou rádio
-              audioInfo.audio.pause();
+              audio.pause();
             }
           }}
         >
           {isPaused ? <PlayArrow /> : <Pause />}
         </IconButton>
         <IconButton
-          disabled={
-            isAwatingAsyncEvent || !user.playlist || user.playlist.length === 0
-          }
+          disabled={isAwatingAsyncEvent}
+          onClick={() => {
+            audio.load();
+            setSelectedRadio(null);
+          }}
+        >
+          <Stop />
+        </IconButton>
+        <IconButton
+          disabled={playlistIndex === -1 || user.favorites.length === 1}
+          onClick={handleSkipNextTrack}
         >
           <SkipNext />
         </IconButton>

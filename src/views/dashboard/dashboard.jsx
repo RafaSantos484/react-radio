@@ -19,7 +19,7 @@ export function Dashboard() {
   const navigate = useNavigate();
 
   const [user, setUser] = useState(null);
-  const [isAwatingAsyncEvent, setIsAwatingAsyncEvent] = useState(false);
+  const [playlistIndex, setPlaylistIndex] = useState(-1);
 
   const audio = useState(new Audio())[0];
   const [selectedRadio, setSelectedRadio] = useState(null);
@@ -46,42 +46,40 @@ export function Dashboard() {
         return setUser({ isAnonymous, history: [] });
       }
 
-      if (!isAwatingAsyncEvent) {
-        setIsAwatingAsyncEvent(true);
-        onRetrieveLoggedUser((retrievedUser) => {
-          if (!retrievedUser) return navigate("/");
+      if (tabs.length < 3) {
+        setTabs(
+          tabs.concat({
+            label: "Favoritos",
+            icon: Favorite,
+          })
+        );
+      }
 
-          setTabs(
-            tabs.concat({
-              label: "Favoritos",
-              icon: Favorite,
-            })
-          );
-          getDoc(`users/${retrievedUser.uid}`, (val) => {
-            const history = val && val.history ? val.history : [];
-            const favorites = val && val.favorites ? val.favorites : [];
+      onRetrieveLoggedUser((retrievedUser) => {
+        if (!retrievedUser) return navigate("/");
 
-            setUser({
-              id: retrievedUser.uid,
-              isAnonymous: false,
-              name: retrievedUser.displayName,
-              history,
-              favorites,
-              playlist: [],
-            });
-            setIsAwatingAsyncEvent(false);
-          }).catch((err) => {
-            console.log(err);
-            setAlertInfo({
-              severity: "error",
-              message:
-                "Falha ao obter dados do usuário. Recarregue a página para tentar novamente",
-            });
+        getDoc(`users/${retrievedUser.uid}`, (val) => {
+          const history = val && val.history ? val.history : [];
+          const favorites = val && val.favorites ? val.favorites : [];
+
+          setUser({
+            id: retrievedUser.uid,
+            isAnonymous: false,
+            name: retrievedUser.displayName,
+            history,
+            favorites,
+          });
+        }).catch((err) => {
+          console.log(err);
+          setAlertInfo({
+            severity: "error",
+            message:
+              "Falha ao obter dados do usuário. Recarregue a página para tentar novamente",
           });
         });
-      }
+      });
     }
-  }, [isAnonymous, navigate, user, isAwatingAsyncEvent, tabs]);
+  }, [isAnonymous, navigate, user, tabs]);
 
   if (!user)
     return (
@@ -109,7 +107,6 @@ export function Dashboard() {
             return (
               <Tab
                 key={index}
-                disabled={isAwatingAsyncEvent}
                 icon={<Icon sx={{ color }} />}
                 iconPosition="end"
                 label={
@@ -121,7 +118,14 @@ export function Dashboard() {
             );
           })}
         </Tabs>
-        <Player selectedRadio={selectedRadio} audio={audio} user={user} />
+        <Player
+          selectedRadio={selectedRadio}
+          setSelectedRadio={setSelectedRadio}
+          audio={audio}
+          user={user}
+          playlistIndex={playlistIndex}
+          setPlaylistIndex={setPlaylistIndex}
+        />
         <Button
           variant="outlined"
           sx={{
@@ -136,9 +140,7 @@ export function Dashboard() {
               borderColor: "#ad323f",
             },
           }}
-          disabled={isAwatingAsyncEvent}
           onClick={() => {
-            setIsAwatingAsyncEvent(true);
             logout()
               .then(() => {
                 audio.load();
@@ -150,8 +152,7 @@ export function Dashboard() {
                   severity: "error",
                   message: err.message,
                 })
-              )
-              .finally(() => setIsAwatingAsyncEvent(false));
+              );
           }}
         >
           Sair
@@ -169,6 +170,7 @@ export function Dashboard() {
               setUser={setUser}
               setSelectedRadio={setSelectedRadio}
               audio={audio}
+              setPlaylistIndex={setPlaylistIndex}
             />
           );
         })()}

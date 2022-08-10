@@ -14,7 +14,7 @@ import { setDoc } from "../../../api/firebase";
 import { RadioCard } from "../../../components/radio-card";
 
 export function SearchRadio(props) {
-  const { user, setUser, setSelectedRadio, audio } = props;
+  const { user, setUser, setSelectedRadio, audio, setPlaylistIndex } = props;
 
   const [isSearching, setIsSearching] = useState(false);
   const [searchVal, setSearchVal] = useState("");
@@ -51,35 +51,35 @@ export function SearchRadio(props) {
     if (searchResult.length === 0)
       return <Typography>Nenhuma rádio encontrada</Typography>;
 
-    return searchResult
-      .map((radio) => (
-        <RadioCard
-          key={radio.id}
-          isAwatingAsyncEvent={isAwatingAsyncEvent}
-          setIsAwatingAsyncEvent={setIsAwatingAsyncEvent}
-          radio={radio}
-          user={user}
-          setUser={setUser}
-          page="buscar rádio"
-          onClick={async () => {
-            setIsAwatingAsyncEvent(true);
+    return searchResult.map((radio) => (
+      <RadioCard
+        key={radio.id}
+        isAwatingAsyncEvent={isAwatingAsyncEvent}
+        setIsAwatingAsyncEvent={setIsAwatingAsyncEvent}
+        radio={radio}
+        user={user}
+        setUser={setUser}
+        page="buscar rádio"
+        onClick={async () => {
+          setPlaylistIndex(-1);
+          setSelectedRadio(radio);
 
-            let newHistory = user.history.filter((r) => r.id !== radio.id);
-            newHistory.push(radio);
-            user.isAnonymous
-              ? setUser({ ...user, history: newHistory })
-              : await setDoc(`users/${user.id}/history`, newHistory);
+          setIsAwatingAsyncEvent(true);
 
-            setSelectedRadio(radio);
-            setIsAwatingAsyncEvent(false);
+          let newHistory = user.history.filter((r) => r.id !== radio.id);
+          newHistory.unshift(radio);
+          user.isAnonymous
+            ? setUser({ ...user, history: newHistory })
+            : await setDoc(`users/${user.id}/history`, newHistory);
 
-            audio.load();
-            audio.src = radio.url;
-            playAudio(audio);
-          }}
-        />
-      ))
-      .reverse();
+          setIsAwatingAsyncEvent(false);
+
+          audio.load();
+          audio.src = radio.url;
+          playAudio(audio, radio);
+        }}
+      />
+    ));
   }
 
   return (

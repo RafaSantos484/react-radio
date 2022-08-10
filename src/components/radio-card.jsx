@@ -9,7 +9,7 @@ import {
 import { Favorite, Delete } from "@mui/icons-material";
 
 import genericRadioImg from "../assets/dashboard/generic-radio-image.svg";
-import { setDoc } from "../api/firebase";
+import { handleFavoriteClick, setDoc } from "../api/firebase";
 import { setAlertInfo } from "../App";
 
 export function RadioCard(props) {
@@ -28,35 +28,6 @@ export function RadioCard(props) {
     overflow: "hidden",
     //marginBottom: "0.5em",
   };
-
-  function handleFavoriteClick() {
-    setIsAwatingAsyncEvent(true);
-
-    let action;
-    let actionMessage;
-    if (user.favorites.findIndex((f) => f.id === radio.id) !== -1) {
-      action = setDoc(
-        `users/${user.id}/favorites`,
-        user.favorites.filter((f) => f.id !== radio.id)
-      );
-      actionMessage = "remover";
-    } else {
-      const newFavorites = user.favorites;
-      newFavorites.push(radio);
-      action = setDoc(`users/${user.id}/favorites`, newFavorites);
-      actionMessage = "adicionar";
-    }
-
-    action
-      .catch((err) => {
-        console.log(err);
-        setAlertInfo({
-          severity: "error",
-          message: `Falha ao ${actionMessage} favorito`,
-        });
-      })
-      .finally(() => setIsAwatingAsyncEvent(false));
-  }
 
   async function handleDeleteClick() {
     setIsAwatingAsyncEvent(true);
@@ -126,7 +97,14 @@ export function RadioCard(props) {
               ? "#ef7d1e"
               : "",
           }}
-          onClick={handleFavoriteClick}
+          onClick={() => {
+            setIsAwatingAsyncEvent(true);
+            handleFavoriteClick(user, radio)
+              .catch((err) =>
+                setAlertInfo({ severity: "error", message: err.message })
+              )
+              .finally(() => setIsAwatingAsyncEvent(false));
+          }}
           disabled={isAwatingAsyncEvent}
         >
           <Favorite />

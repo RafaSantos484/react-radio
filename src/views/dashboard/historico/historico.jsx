@@ -6,43 +6,41 @@ import { playAudio } from "../../../api/radio-browser";
 import { useState } from "react";
 
 export function History(props) {
-  const { user, setUser, setSelectedRadio, audio } = props;
+  const { user, setUser, setSelectedRadio, audio, setPlaylistIndex } = props;
 
   const [isAwatingAsyncEvent, setIsAwatingAsyncEvent] = useState(false);
 
   return (
     <div className={styles.container}>
-      {user.history
-        .map((radio) => (
-          <RadioCard
-            key={radio.id}
-            isAwatingAsyncEvent={isAwatingAsyncEvent}
-            setIsAwatingAsyncEvent={setIsAwatingAsyncEvent}
-            radio={radio}
-            user={user}
-            setUser={setUser}
-            page="histórico"
-            onClick={async () => {
-              setSelectedRadio(radio);
+      {user.history.map((radio) => (
+        <RadioCard
+          key={radio.id}
+          isAwatingAsyncEvent={isAwatingAsyncEvent}
+          setIsAwatingAsyncEvent={setIsAwatingAsyncEvent}
+          radio={radio}
+          user={user}
+          setUser={setUser}
+          page="histórico"
+          onClick={async () => {
+            setPlaylistIndex(-1);
+            setSelectedRadio(radio);
 
-              setIsAwatingAsyncEvent(true);
+            setIsAwatingAsyncEvent(true);
 
-              let newHistory = user.history.filter((r) => r.id !== radio.id);
-              newHistory.push(radio);
-              user.isAnonymous
-                ? setUser({ ...user, history: newHistory })
-                : await setDoc(`users/${user.id}/history`, newHistory);
+            let newHistory = user.history.filter((r) => r.id !== radio.id);
+            newHistory.unshift(radio);
+            user.isAnonymous
+              ? setUser({ ...user, history: newHistory })
+              : await setDoc(`users/${user.id}/history`, newHistory);
 
-              setIsAwatingAsyncEvent(false);
+            setIsAwatingAsyncEvent(false);
 
-              //setAudioInfo({ ...audioInfo, shouldRefreshAudio: false });
-              audio.load();
-              audio.src = radio.url;
-              playAudio(audio);
-            }}
-          />
-        ))
-        .reverse()}
+            audio.load();
+            audio.src = radio.url;
+            playAudio(audio, radio);
+          }}
+        />
+      ))}
     </div>
   );
 }

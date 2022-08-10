@@ -20,7 +20,7 @@ const firebaseConfig = {
   appId: process.env.REACT_APP_FIREBASE_APP_ID,
 };
 
-const firebaseApp = initializeApp(firebaseConfig);
+export const firebaseApp = initializeApp(firebaseConfig);
 
 export async function getDoc(path, onValueCallback = null) {
   const dbRef = ref(getDatabase(firebaseApp), path);
@@ -34,6 +34,27 @@ export async function setDoc(path, data) {
   const dbRef = ref(getDatabase(firebaseApp), path);
 
   return await set(dbRef, data);
+}
+
+export async function handleFavoriteClick(user, radio) {
+  let actionMessage;
+  let newFavorites;
+  try {
+    const dbRef = ref(getDatabase(firebaseApp), `users/${user.id}/favorites`);
+
+    if (user.favorites.findIndex((f) => f.id === radio.id) !== -1) {
+      newFavorites = user.favorites.filter((f) => f.id !== radio.id);
+      actionMessage = "remover";
+    } else {
+      newFavorites = user.favorites;
+      newFavorites.unshift(radio);
+      actionMessage = "adicionar";
+    }
+
+    return await set(dbRef, newFavorites);
+  } catch (err) {
+    throw new Error(`ERRO: Falha ao ${actionMessage} favorito`);
+  }
 }
 
 export function onRetrieveLoggedUser(callback) {

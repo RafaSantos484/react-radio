@@ -1,4 +1,13 @@
-import { Slide, Typography, Button, CircularProgress } from "@mui/material";
+import {
+  Slide,
+  Typography,
+  Button,
+  CircularProgress,
+  Popper,
+  Paper,
+  Fade,
+} from "@mui/material";
+import { HelpOutline } from "@mui/icons-material";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -18,6 +27,7 @@ export function Login() {
   const [titleIn, setTitleIn] = useState(false);
   const [subTitleIn, setSubTitleIn] = useState(false);
   const [formIn, setFormIn] = useState(false);
+  const [popperAnchor, setPopperAnchor] = useState(null);
   const [isGettingUser, setIsGettingUser] = useState(true);
   const [isAwatingAsyncEvent, setIsAwatingAsyncEvent] = useState(false);
 
@@ -31,14 +41,6 @@ export function Login() {
     setIsAwatingAsyncEvent(true);
 
     if (isLoggingInAnonymously) {
-      /*return loginAnonymously()
-        .catch((err) =>
-          setAlertInfo({
-            severity: "error",
-            message: err.message,
-          })
-        )
-        .finally(() => setIsAwatingAsyncEvent(false));*/
       return navigate("/dashboard", { state: { isAnonymous: true } });
     }
 
@@ -74,7 +76,7 @@ export function Login() {
 
         setTitleIn(true);
         setTimeout(() => setSubTitleIn(true), 300);
-        setTimeout(() => setFormIn(true), 500);
+        setTimeout(() => setFormIn(true), 600);
       });
     }
   }, [navigate, isGettingUser]);
@@ -93,7 +95,7 @@ export function Login() {
           Milhares de rádios ao alcançe de um click
         </Typography>
       </Slide>
-      <Slide direction="down" in={subTitleIn} timeout={800}>
+      <Slide direction="down" in={subTitleIn} timeout={500}>
         <div style={{ display: "flex" }}>
           <Typography
             variant="h6"
@@ -116,7 +118,7 @@ export function Login() {
         </div>
       </Slide>
 
-      <Slide direction="right" in={formIn} timeout={1200}>
+      <Slide direction="right" in={formIn} timeout={900}>
         <form onSubmit={(event) => handleSubmit(event)} className={styles.form}>
           <img src={logo} alt="logo" draggable={false} />
           <StyledTextField
@@ -159,14 +161,44 @@ export function Login() {
           >
             Esqueci a senha
           </Button>
-          <Button
-            variant="text"
-            sx={{ color: "#ef7d1e" }}
-            disabled={isAwatingAsyncEvent}
-            onClick={(event) => handleSubmit(event, true)}
-          >
-            Entrar sem fazer login
-          </Button>
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <Button
+              variant="text"
+              sx={{ color: "#ef7d1e" }}
+              disabled={isAwatingAsyncEvent}
+              onClick={(event) => handleSubmit(event, true)}
+            >
+              Entrar sem fazer login
+            </Button>
+            <HelpOutline
+              sx={{ color: "#ef7d1e", margin: "0 0.2em" }}
+              onMouseEnter={(event) => setPopperAnchor(event.currentTarget)}
+              onMouseLeave={() => setPopperAnchor(null)}
+            />
+            <Popper
+              open={!!popperAnchor}
+              anchorEl={popperAnchor}
+              placement="left-start"
+              transition
+            >
+              {({ TransitionProps }) => (
+                <Fade {...TransitionProps} timeout={350}>
+                  <Paper
+                    sx={{
+                      width: "250px",
+                      backgroundColor: "wheat",
+                      padding: "0.3em",
+                    }}
+                  >
+                    <Typography>
+                      Se não fizer login, seu histórico não será armazenado e
+                      você não poderá salvar suas rádios favoritas
+                    </Typography>
+                  </Paper>
+                </Fade>
+              )}
+            </Popper>
+          </div>
         </form>
       </Slide>
     </div>
