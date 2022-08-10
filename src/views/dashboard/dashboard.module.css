@@ -1,25 +1,17 @@
-/*.container {
-  display: flex;
-  width: 100vw;
-  min-height: 100vh;
-  align-items: center;
-  justify-content: center;
-}*/
-
 :root {
   --left-bar-width: 20vw;
 }
 
 .container {
   display: flex;
-  width: 100vw;
-  min-height: 100vh;
   justify-content: center;
   align-items: center;
+  width: 100vw;
+  height: 100vh;
 }
 
-.leftBar {
-  width: var(--left-bar-width);
+/*.leftBar {
+  /*width: var(--left-bar-width);
   left: 0;
   top: 0;
   bottom: 0;
@@ -28,11 +20,37 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+}*/
+
+.leftBar {
+  top: 0;
+  bottom: 0;
+  height: 100vh;
+  background-color: #e8e4eb;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.leftBarOpen {
+  transition: all 0.5s ease-in-out;
+  width: 20vw;
+  min-width: 200px;
+}
+
+.leftBarClosed {
+  transition: all 0.5s ease-in-out;
+  width: 10vw;
+  min-width: 70px;
+  max-width: 90px;
 }
 
 .selectedPageDiv {
   display: flex;
-  width: calc(100vw - var(--left-bar-width));
-  min-height: 100vh;
-  margin-left: var(--left-bar-width);
+  flex-grow: 1;
+  overflow-x: hidden;
+  overflow-y: auto;
+  /*width: calc(100vw - var(--left-bar-width));
+  margin-left: var(--left-bar-width);*/
+  height: 100vh;
 }

@@ -1,4 +1,4 @@
-import { Card, Box, Typography, IconButton, CardMedia } from "@mui/material";
+import { Card, Typography, IconButton, CardMedia } from "@mui/material";
 import {
   SkipPrevious,
   PlayArrow,
@@ -86,7 +86,7 @@ export function Player(props) {
       sx={{
         width: "100%",
         display: "flex",
-        maxHeight: "35vh",
+        maxHeight: "30vh",
         flexDirection: "column",
         alignItems: "center",
       }}
@@ -98,7 +98,7 @@ export function Player(props) {
         }
         draggable={false}
         alt="radio favicon"
-        sx={{ maxHeight: "70%", width: "auto" }}
+        sx={{ maxHeight: "60%", width: "auto" }}
       />
       <Typography
         component="div"
@@ -108,12 +108,13 @@ export function Player(props) {
           whiteSpace: "nowrap",
           overflow: "hidden",
           width: "90%",
+          maxHeight: "20%",
           margin: "0.5em 0",
         }}
       >
         {selectedRadio.name}
       </Typography>
-      <Box sx={{ display: "flex", justifyContent: "center" }}>
+      <div style={{ maxHeight: "20%" }}>
         {!user.isAnonymous && (
           <IconButton
             disabled={isAwatingAsyncEvent}
@@ -170,7 +171,7 @@ export function Player(props) {
         >
           <SkipNext />
         </IconButton>
-      </Box>
+      </div>
     </Card>
   );
 }

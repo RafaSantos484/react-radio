@@ -5,6 +5,7 @@ import {
   CardContent,
   CardMedia,
   IconButton,
+  CardActions,
 } from "@mui/material";
 import { Favorite, Delete } from "@mui/icons-material";
 
@@ -61,7 +62,7 @@ export function RadioCard(props) {
         disabled={isAwatingAsyncEvent}
         sx={{
           width: "100%",
-          height: "90%",
+          height: "85%",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
@@ -74,7 +75,7 @@ export function RadioCard(props) {
           draggable={false}
           sx={{
             height: "70%",
-            minHeight: "150px",
+            minHeight: "100px",
             width: "auto",
             padding: "0.3em",
           }}
@@ -90,31 +91,37 @@ export function RadioCard(props) {
           </Typography>
         </CardContent>
       </CardActionArea>
-      {(page === "buscar rádio" || page === "histórico") && !user.isAnonymous && (
-        <IconButton
-          sx={{
-            color: user.favorites.find((f) => f.id === radio.id)
-              ? "#ef7d1e"
-              : "",
-          }}
-          onClick={() => {
-            setIsAwatingAsyncEvent(true);
-            handleFavoriteClick(user, radio)
-              .catch((err) =>
-                setAlertInfo({ severity: "error", message: err.message })
-              )
-              .finally(() => setIsAwatingAsyncEvent(false));
-          }}
-          disabled={isAwatingAsyncEvent}
-        >
-          <Favorite />
-        </IconButton>
-      )}
-      {(page === "histórico" || page === "favoritos") && (
-        <IconButton onClick={handleDeleteClick} disabled={isAwatingAsyncEvent}>
-          <Delete />
-        </IconButton>
-      )}
+      <CardActions sx={{ height: "10%" }}>
+        {(page === "buscar rádio" || page === "histórico") &&
+          !user.isAnonymous && (
+            <IconButton
+              sx={{
+                color: user.favorites.find((f) => f.id === radio.id)
+                  ? "#ef7d1e"
+                  : "",
+              }}
+              onClick={() => {
+                setIsAwatingAsyncEvent(true);
+                handleFavoriteClick(user, radio)
+                  .catch((err) =>
+                    setAlertInfo({ severity: "error", message: err.message })
+                  )
+                  .finally(() => setIsAwatingAsyncEvent(false));
+              }}
+              disabled={isAwatingAsyncEvent}
+            >
+              <Favorite />
+            </IconButton>
+          )}
+        {(page === "histórico" || page === "favoritos") && (
+          <IconButton
+            onClick={handleDeleteClick}
+            disabled={isAwatingAsyncEvent}
+          >
+            <Delete />
+          </IconButton>
+        )}
+      </CardActions>
     </Card>
   );
 }

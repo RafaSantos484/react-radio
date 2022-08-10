@@ -1,6 +1,20 @@
 import React, { useEffect, useState } from "react";
-import { Tab, Tabs, Button, Typography, CircularProgress } from "@mui/material";
-import { History, Favorite, Search } from "@mui/icons-material";
+import {
+  Tab,
+  Tabs,
+  Button,
+  Typography,
+  CircularProgress,
+  IconButton,
+} from "@mui/material";
+import {
+  History,
+  Favorite,
+  Search,
+  Menu,
+  Close,
+  ExitToApp,
+} from "@mui/icons-material";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import styles from "./dashboard.module.css";
@@ -24,6 +38,7 @@ export function Dashboard() {
   const audio = useState(new Audio())[0];
   const [selectedRadio, setSelectedRadio] = useState(null);
 
+  const [isLeftBarOpen, setIsLeftBarOpen] = useState(false);
   const [tabsIndex, setTabsIndex] = useState(0);
   const [tabs, setTabs] = useState([
     {
@@ -91,73 +106,149 @@ export function Dashboard() {
   console.log(user);
   return (
     <div className={styles.container}>
-      <div className={styles.leftBar}>
-        <img src={logo} alt="logo" draggable={false} style={{ width: "80%" }} />
-        <Tabs
-          orientation="vertical"
-          TabIndicatorProps={{ style: { background: "#ad323f" } }}
-          value={tabsIndex}
-          onChange={(event, newIndex) => setTabsIndex(newIndex)}
-          sx={{ margin: "2em 0", width: "100%" }}
-        >
-          {tabs.map((tab, index) => {
-            const Icon = tab.icon;
-            const color = tabsIndex === index ? "#ef7d1e" : "";
+      {isLeftBarOpen ? (
+        <div className={`${styles.leftBar} ${styles.leftBarOpen}`}>
+          <IconButton
+            sx={{ alignSelf: "flex-end", position: "absolute" }}
+            onClick={() => setIsLeftBarOpen(false)}
+          >
+            <Close />
+          </IconButton>
+          <img
+            src={logo}
+            alt="logo"
+            draggable={false}
+            style={{ width: "60%", minWidth: "120px" }}
+          />
+          {!user.isAnonymous && (
+            <Typography
+              sx={{ marginTop: "1em", color: "#ad323f" }}
+            >{`Olá ${user.name}`}</Typography>
+          )}
+          <Tabs
+            orientation="vertical"
+            TabIndicatorProps={{ style: { background: "#ad323f" } }}
+            value={tabsIndex}
+            onChange={(event, newIndex) => setTabsIndex(newIndex)}
+            sx={{ width: "100%", marginTop: "0.5em", marginBottom: "1em" }}
+          >
+            {tabs.map((tab, index) => {
+              const Icon = tab.icon;
+              const color = tabsIndex === index ? "#ef7d1e" : "";
 
-            return (
-              <Tab
-                key={index}
-                icon={<Icon sx={{ color }} />}
-                iconPosition="end"
-                label={
-                  <Typography sx={{ width: "80%", color }}>
-                    {tab.label}
-                  </Typography>
-                }
-              />
-            );
-          })}
-        </Tabs>
-        <Player
-          selectedRadio={selectedRadio}
-          setSelectedRadio={setSelectedRadio}
-          audio={audio}
-          user={user}
-          playlistIndex={playlistIndex}
-          setPlaylistIndex={setPlaylistIndex}
-        />
-        <Button
-          variant="outlined"
-          sx={{
-            position: "absolute",
-            bottom: "3vh",
-            backgroundColor: "inherit",
-            color: "#ad323f",
-            borderColor: "#ad323f",
-            "&:hover": {
+              return (
+                <Tab
+                  key={index}
+                  icon={<Icon sx={{ color }} />}
+                  iconPosition="end"
+                  label={
+                    <Typography sx={{ width: "80%", color }}>
+                      {tab.label}
+                    </Typography>
+                  }
+                />
+              );
+            })}
+          </Tabs>
+          <Player
+            selectedRadio={selectedRadio}
+            setSelectedRadio={setSelectedRadio}
+            audio={audio}
+            user={user}
+            playlistIndex={playlistIndex}
+            setPlaylistIndex={setPlaylistIndex}
+          />
+          <Button
+            variant="outlined"
+            sx={{
+              marginTop: "1em",
               backgroundColor: "inherit",
               color: "#ad323f",
               borderColor: "#ad323f",
-            },
-          }}
-          onClick={() => {
-            logout()
-              .then(() => {
-                audio.load();
-                window.history.replaceState({ state: null }, document.title);
-                navigate("/");
-              })
-              .catch((err) =>
-                setAlertInfo({
-                  severity: "error",
-                  message: err.message,
+              "&:hover": {
+                backgroundColor: "inherit",
+                color: "#ad323f",
+                borderColor: "#ad323f",
+              },
+            }}
+            onClick={() => {
+              logout()
+                .then(() => {
+                  audio.load();
+                  window.history.replaceState({ state: null }, document.title);
+                  navigate("/");
                 })
+                .catch((err) =>
+                  setAlertInfo({
+                    severity: "error",
+                    message: err.message,
+                  })
+                );
+            }}
+          >
+            Sair
+          </Button>
+        </div>
+      ) : (
+        <div className={`${styles.leftBar} ${styles.leftBarClosed}`}>
+          <IconButton onClick={() => setIsLeftBarOpen(true)}>
+            <Menu />
+          </IconButton>
+          <div
+            style={{
+              margin: "2em 0",
+              width: "100%",
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            {tabs.map((tab, index) => {
+              const Icon = tab.icon;
+              const color = tabsIndex === index ? "#ef7d1e" : "";
+
+              return (
+                <IconButton
+                  key={index}
+                  sx={{ color }}
+                  onClick={() => setTabsIndex(index)}
+                >
+                  <Icon />
+                </IconButton>
               );
-          }}
-        >
-          Sair
-        </Button>
-      </div>
+            })}
+          </div>
+          <IconButton
+            sx={{
+              position: "absolute",
+              bottom: "5px",
+              backgroundColor: "inherit",
+              color: "#ad323f",
+              borderColor: "#ad323f",
+              "&:hover": {
+                backgroundColor: "inherit",
+                color: "#ad323f",
+                borderColor: "#ad323f",
+              },
+            }}
+            onClick={() => {
+              logout()
+                .then(() => {
+                  audio.load();
+                  window.history.replaceState({ state: null }, document.title);
+                  navigate("/");
+                })
+                .catch((err) =>
+                  setAlertInfo({
+                    severity: "error",
+                    message: err.message,
+                  })
+                );
+            }}
+          >
+            <ExitToApp />
+          </IconButton>
+        </div>
+      )}
       <div className={styles.selectedPageDiv}>
         {(() => {
           const Component = [SearchRadio, HistoryComponent, Favorites][

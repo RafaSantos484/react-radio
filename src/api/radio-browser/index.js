@@ -18,7 +18,6 @@ export async function getSearchResult(radioName) {
 }
 
 export async function playAudio(audio, radio, setIsAwatingAsyncEvent = null) {
-  let attempts = 1;
   try {
     await audio.play();
     navigator.mediaSession.metadata = new MediaMetadata({
@@ -34,6 +33,7 @@ export async function playAudio(audio, radio, setIsAwatingAsyncEvent = null) {
       return;
 
     console.log(err);
+    let attempts = 1;
     for (; attempts <= 10; attempts++) {
       try {
         await audio.play();
@@ -47,14 +47,14 @@ export async function playAudio(audio, radio, setIsAwatingAsyncEvent = null) {
       }
     }
 
-    if (attempts > 5) {
+    if (attempts > 10) {
       setAlertInfo({
         severity: "error",
         message: "Falha ao tocar rádio",
       });
     }
   } finally {
-    setIsAwatingAsyncEvent(false);
+    if (setIsAwatingAsyncEvent) setIsAwatingAsyncEvent(false);
   }
   /*audio
     .play()
