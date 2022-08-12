@@ -1,3 +1,4 @@
+import { Typography } from "@mui/material";
 import { setAlertInfo } from "../../App";
 
 export async function getSearchResult(radioName) {
@@ -50,36 +51,21 @@ export async function playAudio(audio, radio, setIsAwatingAsyncEvent = null) {
     if (attempts > 10) {
       setAlertInfo({
         severity: "error",
-        message: "Falha ao tocar rádio",
+        message: (
+          <Typography>
+            Falha ao tocar rádio. Para saber mais,{" "}
+            <a
+              href="https://github.com/RafaSantos484/react-radio#link-para-teste-da-aplica%C3%A7%C3%A3o-httpsreactradiovercelapp"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              clique aqui
+            </a>
+          </Typography>
+        ),
       });
     }
   } finally {
     if (setIsAwatingAsyncEvent) setIsAwatingAsyncEvent(false);
   }
-  /*audio
-    .play()
-    .then(
-      () =>
-        (navigator.mediaSession.metadata = new MediaMetadata({
-          title: radio.name,
-          artwork: [{ src: radio.favicon }],
-        }))
-    )
-    .catch((err) => {
-      if (
-        err.message.startsWith(
-          "The play() request was interrupted by a new load request."
-        )
-      )
-        return;
-
-      console.log(err);
-      setAlertInfo({
-        severity: "error",
-        message: "Falha ao tocar rádio",
-      });
-    })
-    .finally(() => {
-      if (setIsAwatingAsyncEvent) setIsAwatingAsyncEvent(false);
-    });*/
 }

@@ -103,7 +103,6 @@ export function Dashboard() {
       </div>
     );
 
-  console.log(user);
   return (
     <div className={styles.container}>
       {isLeftBarOpen ? (

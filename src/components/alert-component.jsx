@@ -36,7 +36,13 @@ export function AlertComponent(props) {
             </div>
           }
         >
-          {alertInfo.message.replace("ERRO: ", "")}
+          {(() => {
+            if (typeof alertInfo.message === "string") {
+              return alertInfo.message.replace("ERRO: ", "");
+            }
+
+            return alertInfo.message;
+          })()}
         </Alert>
       </div>
     </Slide>
