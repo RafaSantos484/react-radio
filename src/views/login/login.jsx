@@ -7,7 +7,7 @@ import {
   Paper,
   Fade,
 } from "@mui/material";
-import { HelpOutline } from "@mui/icons-material";
+import { HelpOutline, GitHub } from "@mui/icons-material";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -199,6 +199,14 @@ export function Login() {
               )}
             </Popper>
           </div>
+          <a
+            href="https://github.com/RafaSantos484/react-radio"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.githubButton}
+          >
+            <GitHub />
+          </a>
         </form>
       </Slide>
     </div>

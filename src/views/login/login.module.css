@@ -28,3 +28,22 @@
 .form img {
   width: 250px;
 }
+
+.githubButton {
+  align-self: flex-start;
+  height: 4vh;
+  margin-top: 1em;
+}
+.githubButton svg {
+  color: black;
+  height: 5vh;
+  min-height: 30px;
+  width: auto;
+  transition: all 0.2s ease-in-out;
+}
+.githubButton:hover {
+  cursor: pointer;
+}
+.githubButton svg:hover {
+  height: 5.5vh;
+}
